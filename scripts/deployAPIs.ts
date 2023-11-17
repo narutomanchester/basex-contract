@@ -2,7 +2,7 @@ import { ethers, upgrades } from "hardhat";
 
 const voterV3 = "0x95401dc811bb5740090279Ba06cfA8fcF6113778";
 const rewardDistributor = "0xa82fF9aFd8f496c3d6ac40E2a0F282E47488CFc9";
-const uniswapV3Factory = "";
+const uniswapV3Factory = "0x4826533B4897376654Bb4d4AD88B7faFD0C98528";
 
 async function main() {
   console.log("Deploying APIs...");
