@@ -2,10 +2,10 @@
 pragma solidity 0.8.13;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import './interfaces/IPermissionsRegistry.sol';
-import './interfaces/IGaugeFactoryV2.sol';
-import './GaugeV2_CL.sol';
-import "./CLFeesVault.sol";
+import '../interfaces/IPermissionsRegistry.sol';
+import '../interfaces/IGaugeFactoryV2.sol';
+import '../GaugeV2_CL.sol';
+import "../CLFeesVault.sol";
 
 import "hardhat/console.sol";
 

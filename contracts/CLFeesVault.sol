@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import './interfaces/IUniswapV3PoolImmutables.sol';
+import './interfaces/IUniswapV3Pool.sol';
 import './interfaces/IBribe.sol';
 import './interfaces/IVoter.sol';
 import './interfaces/IPermissionsRegistry.sol';
@@ -111,7 +111,7 @@ contract CLFeesVault {
         // uint nft;
 
         // token0
-        address t0 = IUniswapV3PoolImmutables(pool).token0();
+        address t0 = IUniswapV3Pool(pool).token0();
         uint256 _amount0 = IERC20(t0).balanceOf(address(this));
 
         // (gamma, referral, nft, gauge0) = _getFees(_amount0);
@@ -128,7 +128,7 @@ contract CLFeesVault {
 
         }
         // token1
-        address t1 = IUniswapV3PoolImmutables(pool).token1();
+        address t1 = IUniswapV3Pool(pool).token1();
         uint256 _amount1 = IERC20(t1).balanceOf(address(this));
 
         // (gamma, referral, nft, gauge1) = _getFees(_amount1);

@@ -2,30 +2,23 @@
 pragma solidity 0.8.13;
 
 
-import './libraries/Math.sol';
-import './interfaces/IBribeAPI.sol';
-import './interfaces/IGaugeAPI.sol';
-import './interfaces/IGaugeFactoryV2.sol';
-import './interfaces/IERC20.sol';
-import './interfaces/IMinter.sol';
-import './interfaces/IUniswapV3Factory.sol';
-import './interfaces/IUniswapV3PoolImmutables.sol';
+import '../libraries/Math.sol';
+import '../interfaces/IBribeAPI.sol';
+import '../interfaces/IGaugeAPI.sol';
+import '../interfaces/IGaugeFactoryV2.sol';
+import '../interfaces/IMinter.sol';
+import '../interfaces/IUniswapV3Factory.sol';
 // basex.fi: removed pair and pair factory
-// import './interfaces/IPair.sol';
-// import './interfaces/IPairInfo.sol';
-// import './interfaces/IPairFactory.sol';
-import './interfaces/IVoter.sol';
-import './interfaces/IVotingEscrow.sol';
-
+// import '../interfaces/IPair.sol';
+// import '../interfaces/IPairInfo.sol';
+// import '../interfaces/IPairFactory.sol';
+import '../interfaces/IVoter.sol';
+import '../interfaces/IVotingEscrow.sol';
+import '../interfaces/IHypervisor.sol';
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 import "hardhat/console.sol";
-
-interface IHypervisor{
-    function pool() external view returns(address);
-    function getTotalAmounts() external view returns(uint tot0,uint tot1);
-}
 
 // basex.fi: removed Algebra
 // interface IAlgebraFactory{
@@ -161,7 +154,7 @@ contract PairAPI is Initializable {
         
         // address token_0 = ipair.token0();
         // address token_1 = ipair.token1();
-        IUniswapV3PoolImmutables uniswapV3Pool = IUniswapV3PoolImmutables(_pair); 
+        IUniswapV3Pool uniswapV3Pool = IUniswapV3Pool(_pair); 
         
         address token_0 = uniswapV3Pool.token0();
         address token_1 = uniswapV3Pool.token1();

@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.11;
 
-import "./Bribes.sol";
+import "../Bribes.sol";
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import './interfaces/IPermissionsRegistry.sol';
+import '../interfaces/IPermissionsRegistry.sol';
 
 interface IBribe {
     function addReward(address) external;

@@ -6,22 +6,17 @@ import './interfaces/IBribe.sol';
 import './interfaces/IBribeFactory.sol';
 import './interfaces/IGauge.sol';
 import './interfaces/IGaugeFactoryV2.sol';
-import './interfaces/IERC20.sol';
 import './interfaces/IMinter.sol';
-import './interfaces/IUniswapV3PoolImmutables.sol';
 // basex.fi: removed pair factory
 // import './interfaces/IPairFactory.sol';
 import './interfaces/IVoter.sol';
+import './interfaces/IHypervisor.sol';
 import './interfaces/IVotingEscrow.sol';
 import './interfaces/IPermissionsRegistry.sol';
 import './interfaces/IUniswapV3Factory.sol';
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
-
-interface IHypervisor {
-    function pool() external view returns(address);
-}
 
 contract VoterV3 is IVoter, OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
@@ -571,9 +566,9 @@ contract VoterV3 is IVoter, OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
         address tokenA = address(0);
         address tokenB = address(0);
-        (tokenA) = IUniswapV3PoolImmutables(_pool).token0();
-        (tokenB) = IUniswapV3PoolImmutables(_pool).token1();
-        uint24 fee = IUniswapV3PoolImmutables(_pool).fee();
+        (tokenA) = IUniswapV3Pool(_pool).token0();
+        (tokenB) = IUniswapV3Pool(_pool).token1();
+        uint24 fee = IUniswapV3Pool(_pool).fee();
 
         // for future implementation add isPair() in factory
         // basex.fi: removed pair factory
@@ -582,7 +577,7 @@ contract VoterV3 is IVoter, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         // } 
         if(_gaugeType == 1) {
             address _pool_factory = IUniswapV3Factory(_factory).getPool(tokenA, tokenB, fee);
-            address _pool_hyper = IHypervisor(_pool).pool();
+            address _pool_hyper = address(IHypervisor(_pool).pool());
             require(_pool_hyper == _pool_factory, 'wrong tokens');    
             // isPair = true;
         } else {

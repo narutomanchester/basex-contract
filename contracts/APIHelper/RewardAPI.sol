@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.13;
 
-import './libraries/Math.sol';
-import './interfaces/IBribeAPI.sol';
-import './interfaces/IWrappedBribeFactory.sol';
-import './interfaces/IGaugeAPI.sol';
-import './interfaces/IGaugeFactoryV2.sol';
-import './interfaces/IERC20.sol';
-import './interfaces/IMinter.sol';
+import '../libraries/Math.sol';
+import '../interfaces/IBribeAPI.sol';
+import '../interfaces/IWrappedBribeFactory.sol';
+import '../interfaces/IGaugeAPI.sol';
+import '../interfaces/IGaugeFactoryV2.sol';
+import '../interfaces/IERC20.sol';
+import '../interfaces/IMinter.sol';
 // basex.fi: removed pair and pair factory
 // import './interfaces/IPair.sol';
 // import './interfaces/IPairFactory.sol';
-import './interfaces/IVoter.sol';
-import './interfaces/IVotingEscrow.sol';
+import '../interfaces/IVoter.sol';
+import '../interfaces/IVotingEscrow.sol';
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 contract RewardAPI is Initializable {

@@ -1,7 +1,7 @@
 import { ethers, upgrades } from "hardhat";
 import { ZeroAddress } from "ethers";
 
-const GAMM_FEE_RECEIPIENT = "0xfbE533Ac756f65E783B00df7B860755959B51880";
+const GAMMA_FEE_RECEIPIENT = "0xfbE533Ac756f65E783B00df7B860755959B51880";
 
 const veBXT = "0x9E545E3C0baAB3E08CdfD552C960A1050f373042";
 
@@ -19,11 +19,11 @@ async function main() {
   );
 
   // BRIBE FACTORY
-  const bribeFactoryV3Contrac = await ethers.getContractFactory(
+  const bribeFactoryV3Contract = await ethers.getContractFactory(
     "BribeFactoryV3"
   );
   const bribeFactoryV3 = await upgrades.deployProxy(
-    bribeFactoryV3Contrac,
+    bribeFactoryV3Contract,
     [
       ZeroAddress,
       permissionsRegistry.target,
@@ -43,7 +43,7 @@ async function main() {
   );
   const gaugeFactoryV2CL = await upgrades.deployProxy(
     gaugeFactoryV2CLContract,
-    [permissionsRegistry.target, GAMM_FEE_RECEIPIENT],
+    [permissionsRegistry.target, GAMMA_FEE_RECEIPIENT],
     {
       initializer: "initialize",
     }
@@ -52,7 +52,7 @@ async function main() {
 
   console.log(`GaugeFactoryV2CL deployed. Address: ${gaugeFactoryV2CL.target}`);
 
-  // GAUGE FACTORY V2 CL
+  // Voter V3
   const voterV3Contract = await ethers.getContractFactory("VoterV3");
   const voterV3 = await upgrades.deployProxy(
     voterV3Contract,
