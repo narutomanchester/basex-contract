@@ -14,6 +14,7 @@ import '../interfaces/IUniswapV3Factory.sol';
 // import '../interfaces/IPairFactory.sol';
 import '../interfaces/IVoter.sol';
 import '../interfaces/IVotingEscrow.sol';
+import '../interfaces/IERC20.sol';
 import '../interfaces/IHypervisor.sol';
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
@@ -88,9 +89,10 @@ contract PairAPI is Initializable {
     uint256 public constant MAX_REWARDS = 16;
     uint256 public constant WEEK = 7 * 24 * 60 * 60;
 
-    // basex.fi: removed pair factory
-    // IPairFactory public pairFactory;
-    IUniswapV3Factory public uniswapV3Factory;
+
+    IUniswapV3Factory public pairFactory;
+    // basex.fi: remove algebraFactory
+    // IAlgebraFactory public algebraFactory;
     IVoter public voter;
 
     address public underlyingToken;
@@ -104,21 +106,22 @@ contract PairAPI is Initializable {
 
     constructor() {}
 
-    function initialize(address _voter, address _uniswapV3Factory) initializer public {
+    function initialize(address _voter) initializer public {
   
         owner = msg.sender;
 
         voter = IVoter(_voter);
 
-        // basex.fi: removed pair factory
-        // pairFactory = IPairFactory(voter.factory());
+        pairFactory = IUniswapV3Factory(voter.factory());
         underlyingToken = IVotingEscrow(voter._ve()).token();
 
-        uniswapV3Factory = IUniswapV3Factory(address(_uniswapV3Factory));
+        // basex.fi: remove algebraFactory
+        // algebraFactory = IAlgebraFactory(address(0x306F06C147f064A010530292A1EB6737c3e378e4));
         
     }
 
-    // basex.fi: removed pairs
+
+    // basex.fi: remove getAllPiar
     // valid only for sAMM and vAMM
     // function getAllPair(address _user, uint _amounts, uint _offset) external view returns(pairInfo[] memory Pairs){
 
@@ -147,32 +150,27 @@ contract PairAPI is Initializable {
         return _pairAddressToInfo(_pair, _account);
     }
 
+    // basex.fi: we only have v3 pool
     function _pairAddressToInfo(address _pair, address _account) internal view returns(pairInfo memory _pairInfo) {
 
-        // basex.fi: change pair to uniswap v3 pool
         // IPair ipair = IPair(_pair); 
+        IHypervisor ipair = IHypervisor(_pair); 
         
-        // address token_0 = ipair.token0();
-        // address token_1 = ipair.token1();
-        IUniswapV3Pool uniswapV3Pool = IUniswapV3Pool(_pair); 
-        
-        address token_0 = uniswapV3Pool.token0();
-        address token_1 = uniswapV3Pool.token1();
+        address token_0 = address(ipair.token0());
+        address token_1 = address(ipair.token1());
         uint r0;
         uint r1;
 
-        // basex.fi: removed pair factory
         // checkout is v2 or v3? if v3 then load algebra pool 
         // bool _type = IPairFactory(pairFactory).isPair(_pair);
         bool _type = false;
+        
         if(_type == false){
             // hypervisor totalAmounts = algebra.pool + gamma.unused
-            (r0,r1) = IHypervisor(_pair).getTotalAmounts();
+            (r0,r1) = ipair.getTotalAmounts();
+        } else {
+            // (r0,r1,) = ipair.getReserves();
         }
-        // } else {
-        //     (r0,r1,) = ipair.getReserves();
-        // }
-
 
         IGaugeAPI _gauge = IGaugeAPI(voter.gauges(_pair));
         uint accountGaugeLPAmount = 0;
@@ -192,15 +190,15 @@ contract PairAPI is Initializable {
             gaugeTotalSupply = _gauge.totalSupply();
             emissions = _gauge.rewardRate();
         }
-        
 
         // Pair General Info
         _pairInfo.pair_address = _pair;
-        // _pairInfo.symbol = ipair.symbol();
-        // _pairInfo.name = ipair.name();
-        // _pairInfo.decimals = ipair.decimals();
+        _pairInfo.symbol = ipair.symbol();
+        _pairInfo.name = ipair.name();
+        _pairInfo.decimals = ipair.decimals();
+        _pairInfo.stable = _type == false;
         // _pairInfo.stable = _type == false ? false : ipair.isStable();
-        // _pairInfo.total_supply = ipair.totalSupply();        
+        _pairInfo.total_supply = ipair.totalSupply();        
         
         // Token0 Info
         _pairInfo.token0 = token_0;
@@ -215,7 +213,7 @@ contract PairAPI is Initializable {
         _pairInfo.token1_decimals = IERC20(token_1).decimals();
         _pairInfo.token1_symbol = IERC20(token_1).symbol();
         _pairInfo.reserve1 = r1;
-         _pairInfo.claimable1 = 0;
+        _pairInfo.claimable1 = 0;
         // _pairInfo.claimable1 = _type == false ? 0 : ipair.claimable1(_account);
 
         
@@ -324,8 +322,8 @@ contract PairAPI is Initializable {
         voter = IVoter(_voter);
         
         // update variable depending on voter
-        // basex.fi: removed pair factory
-        // pairFactory = IPairFactory(voter.factory());
+        // basex.fi: change IPairFactory to IUniswapV3Factory
+        pairFactory = IUniswapV3Factory(voter.factory());
         underlyingToken = IVotingEscrow(voter._ve()).token();
 
         emit Voter(_oldVoter, _voter);

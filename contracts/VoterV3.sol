@@ -10,10 +10,11 @@ import './interfaces/IMinter.sol';
 // basex.fi: removed pair factory
 // import './interfaces/IPairFactory.sol';
 import './interfaces/IVoter.sol';
+import './interfaces/IERC20.sol';
+import './interfaces/IUniswapV3Pool.sol';
 import './interfaces/IHypervisor.sol';
 import './interfaces/IVotingEscrow.sol';
 import './interfaces/IPermissionsRegistry.sol';
-import './interfaces/IUniswapV3Factory.sol';
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
@@ -24,8 +25,7 @@ contract VoterV3 is IVoter, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     bool internal initflag;
 
     address public _ve;                                         // the ve token that governs these contracts
-    // basex.fi: removed pair factory
-    // address public factory;                                     // classic stable and volatile Pair Factory
+    address public factory;                                     // classic stable and volatile Pair Factory
     address[] public factories;                                 // Array with all the pair factories
     address internal base;                                      // $the token
     address public gaugefactory;                                // gauge factory
@@ -58,8 +58,7 @@ contract VoterV3 is IVoter, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     mapping(address => bool) public isGauge;                    // gauge    => boolean [is a gauge?]
     mapping(address => bool) public isWhitelisted;              // token    => boolean [is an allowed token?]
     mapping(address => bool) public isAlive;                    // gauge    => boolean [is the gauge alive?]
-    // basex.fi: removed pair factory
-    // mapping(address => bool) public isFactory;                  // factory  => boolean [the pair factory exists?]
+    mapping(address => bool) public isFactory;                  // factory  => boolean [the pair factory exists?]
     mapping(address => bool) public isGaugeFactory;             // g.factory=> boolean [the gauge factory exists?]
 
     event GaugeCreated(address indexed gauge, address creator, address internal_bribe, address indexed external_bribe, address indexed pool);
@@ -76,18 +75,16 @@ contract VoterV3 is IVoter, OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
     constructor() {}
 
-    // basex.fi: removed pair factory
-    // function initialize(address __ve, address _factory, address  _gauges, address _bribes) initializer public {
-    function initialize(address __ve, address  _gauges, address _bribes) initializer public {
+    function initialize(address __ve, address _factory, address  _gauges, address _bribes) initializer public {
         __Ownable_init();
         __ReentrancyGuard_init();
 
         _ve = __ve;
         base = IVotingEscrow(__ve).token();
 
-        // factory = _factory;
-        // factories.push(factory);
-        // isFactory[factory] = true;
+        factory = _factory;
+        factories.push(factory);
+        isFactory[factory] = true;
 
         gaugefactory = _gauges;
         gaugeFactories.push(_gauges);
@@ -168,10 +165,9 @@ contract VoterV3 is IVoter, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     }
 
     /// @notice Set a new Pair Factory
-    // basex.fi: removed pair factory
-    // function setPairFactory(address _factory) external VoterAdmin {
-    //     factory = _factory;
-    // }
+    function setPairFactory(address _factory) external VoterAdmin {
+        factory = _factory;
+    }
 
     /// @notice Set a new PermissionRegistry
     function setPermissionsRegistry(address _permissionRegistry) external VoterAdmin {
@@ -213,47 +209,43 @@ contract VoterV3 is IVoter, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         IERC20(base).approve(_gauge, type(uint).max);
     }
 
-    // basex.fi: removed pair factory
-    // function addFactory(address _pairFactory, address _gaugeFactory) external VoterAdmin {
-    function addFactory(address _gaugeFactory) external VoterAdmin {
-        // require(_pairFactory != address(0), 'addr 0');
+    
+    function addFactory(address _pairFactory, address _gaugeFactory) external VoterAdmin {
+        require(_pairFactory != address(0), 'addr 0');
         require(_gaugeFactory != address(0), 'addr 0');
-        // require(!isFactory[_pairFactory], 'factory true');
+        require(!isFactory[_pairFactory], 'factory true');
         require(!isGaugeFactory[_gaugeFactory], 'g.fact true');
 
-        // factories.push(_pairFactory);
+        factories.push(_pairFactory);
         gaugeFactories.push(_gaugeFactory);
-        // isFactory[_pairFactory] = true;
+        isFactory[_pairFactory] = true;
         isGaugeFactory[_gaugeFactory] = true;
     }
 
-    // basex.fi: removed pair factory
-    // function replaceFactory(address _pairFactory, address _gaugeFactory, uint256 _pos) external VoterAdmin {
-    function replaceFactory(address _gaugeFactory, uint256 _pos) external VoterAdmin {
-        // require(_pairFactory != address(0), 'addr 0');
+    function replaceFactory(address _pairFactory, address _gaugeFactory, uint256 _pos) external VoterAdmin {
+        require(_pairFactory != address(0), 'addr 0');
         require(_gaugeFactory != address(0), 'addr 0');
-        // require(isFactory[_pairFactory], 'factory false');
+        require(isFactory[_pairFactory], 'factory false');
         require(isGaugeFactory[_gaugeFactory], 'g.fact false');
-        // address oldPF = factories[_pos];
+        address oldPF = factories[_pos];
         address oldGF = gaugeFactories[_pos];
-        // isFactory[oldPF] = false;
+        isFactory[oldPF] = false;
         isGaugeFactory[oldGF] = false;
 
-        // factories[_pos] = (_pairFactory);
+        factories[_pos] = (_pairFactory);
         gaugeFactories[_pos] = (_gaugeFactory);
-        // isFactory[_pairFactory] = true;
+        isFactory[_pairFactory] = true;
         isGaugeFactory[_gaugeFactory] = true;
     }
 
-    // basex.fi: removed pair factory
     function removeFactory(uint256 _pos) external VoterAdmin {
-        // address oldPF = factories[_pos];
+        address oldPF = factories[_pos];
         address oldGF = gaugeFactories[_pos];
-        // require(isFactory[oldPF], 'factory false');
+        require(isFactory[oldPF], 'factory false');
         require(isGaugeFactory[oldGF], 'g.fact false');
         factories[_pos] = address(0);
         gaugeFactories[_pos] = address(0);
-        // isFactory[oldPF] = false;
+        isFactory[oldPF] = false;
         isGaugeFactory[oldGF] = false;
     }
 
@@ -496,7 +488,7 @@ contract VoterV3 is IVoter, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     }    
 
     /// @notice attach a veNFT tokenID to a gauge. This is used for boost farming 
-    /// @dev boost not available in BaseX. Keep the function in case we need it for future updates. 
+    /// @dev boost not available in Thena. Keep the function in case we need it for future updates. 
     function attachTokenToGauge(uint tokenId, address account) external {
         require(isGauge[msg.sender]);
         require(isAlive[msg.sender]); // killed gauges cannot attach tokens to themselves
@@ -506,7 +498,7 @@ contract VoterV3 is IVoter, OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
     
     /// @notice detach a veNFT tokenID to a gauge. This is used for boost farming 
-    /// @dev boost not available in BaseX. Keep the function in case we need it for future updates. 
+    /// @dev boost not available in Thena. Keep the function in case we need it for future updates. 
     function detachTokenFromGauge(uint tokenId, address account) external {
         require(isGauge[msg.sender]);
         if (tokenId > 0) IVotingEscrow(_ve).detach(tokenId);
@@ -556,36 +548,36 @@ contract VoterV3 is IVoter, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     function _createGauge(address _pool, uint256 _gaugeType) internal returns (address _gauge, address _internal_bribe, address _external_bribe) {
         require(_gaugeType < factories.length, "gaugetype");
         require(gauges[_pool] == address(0x0), "!exists");
-        // basex.fi: removed isPair
+        // basex.fi: remove isPair
         // bool isPair;
         address _factory = factories[_gaugeType];
         address _gaugeFactory = gaugeFactories[_gaugeType];
         require(_factory != address(0));
         require(_gaugeFactory != address(0));
         
-
+        // to get pool
         address tokenA = address(0);
         address tokenB = address(0);
-        (tokenA) = IUniswapV3Pool(_pool).token0();
-        (tokenB) = IUniswapV3Pool(_pool).token1();
-        uint24 fee = IUniswapV3Pool(_pool).fee();
-
+        IUniswapV3Pool uniswapV3Pool = IHypervisor(_pool).pool();
+        (tokenA) = uniswapV3Pool.token0();
+        (tokenB) = uniswapV3Pool.token1();
+        
+        // basex.fi: removed pairFactory and isPair
         // for future implementation add isPair() in factory
-        // basex.fi: removed pair factory
         // if(_gaugeType == 0){
         //     isPair = IPairFactory(_factory).isPair(_pool);
         // } 
-        if(_gaugeType == 1) {
-            address _pool_factory = IUniswapV3Factory(_factory).getPool(tokenA, tokenB, fee);
-            address _pool_hyper = address(IHypervisor(_pool).pool());
-            require(_pool_hyper == _pool_factory, 'wrong tokens');    
-            // isPair = true;
-        } else {
-            //update
-            //isPair = false;
-        }
+        // if(_gaugeType == 1) {
+        //     address _pool_factory = IUniswapV3Factory(_factory).getPool(tokenA, tokenB, fee);
+        //     address _pool_hyper = address(IHypervisor(_pool).pool());
+        //     require(_pool_hyper == _pool_factory, 'wrong tokens');    
+        //     isPair = true;
+        // } else {
+        //     //update
+        //     //isPair = false;
+        // }
 
-        // gov can create for any pool, even non-BaseX pairs
+        // gov can create for any pool, even non-Thena pairs
         if (!IPermissionsRegistry(permissionRegistry).hasRole("GOVERNANCE",msg.sender)) { 
             // require(isPair, "!_pool");
             require(isWhitelisted[tokenA] && isWhitelisted[tokenB], "!whitelisted");
@@ -594,14 +586,14 @@ contract VoterV3 is IVoter, OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
         // create internal and external bribe
         address _owner = IPermissionsRegistry(permissionRegistry).baseXTeamMultisig();
-        string memory _type =  string.concat("BaseX LP Fees: ", IERC20(_pool).symbol() );
+        string memory _type =  string.concat("Thena LP Fees: ", IERC20(_pool).symbol() );
         _internal_bribe = IBribeFactory(bribefactory).createBribe(_owner, tokenA, tokenB, _type);
 
-        _type = string.concat("BaseX Bribes: ", IERC20(_pool).symbol() );
+        _type = string.concat("Thena Bribes: ", IERC20(_pool).symbol() );
         _external_bribe = IBribeFactory(bribefactory).createBribe(_owner, tokenA, tokenB, _type);
 
         // create gauge
-        // basex.fi: removed isPair
+        // basex.fi: remove isPari
         // _gauge = IGaugeFactory(_gaugeFactory).createGaugeV2(base, _ve, _pool, address(this), _internal_bribe, _external_bribe, isPair);
         _gauge = IGaugeFactory(_gaugeFactory).createGaugeV2(base, _ve, _pool, address(this), _internal_bribe, _external_bribe);
      

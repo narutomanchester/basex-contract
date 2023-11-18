@@ -8,6 +8,7 @@ import '../interfaces/IGaugeAPI.sol';
 import '../interfaces/IGaugeFactoryV2.sol';
 import '../interfaces/IERC20.sol';
 import '../interfaces/IMinter.sol';
+import '../interfaces/IUniswapV3Factory.sol';
 // basex.fi: removed pair and pair factory
 // import './interfaces/IPair.sol';
 // import './interfaces/IPairFactory.sol';
@@ -18,8 +19,8 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 contract RewardAPI is Initializable {
 
  
-    // basex.fi: removed pair factory
-    // IPairFactory public pairFactory;
+
+    IUniswapV3Factory public pairFactory;
     IVoter public voter;
     address public underlyingToken;
     address public owner;
@@ -32,8 +33,7 @@ contract RewardAPI is Initializable {
   
         owner = msg.sender;
         voter = IVoter(_voter);
-        // basex.fi: removed pair factory
-        // pairFactory = IPairFactory(voter.factory());
+        pairFactory = IUniswapV3Factory(voter.factory());
         underlyingToken = IVotingEscrow(voter._ve()).token();
     }
 
@@ -198,8 +198,7 @@ contract RewardAPI is Initializable {
         require(_voter != address(0), 'zeroAddr');
         voter = IVoter(_voter);
         // update variable depending on voter
-        // basex.fi: removed pair factory
-        // pairFactory = IPairFactory(voter.factory());
+        pairFactory = IUniswapV3Factory(voter.factory());
         underlyingToken = IVotingEscrow(voter._ve()).token();
     }
 

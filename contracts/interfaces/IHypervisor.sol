@@ -89,9 +89,14 @@ interface IHypervisor {
       uint256[2] memory inMin
   ) external;
 
+  function decimals() external view returns (uint8);
+
+  function symbol() external view returns (string memory);
+  
+  function name() external view returns (string memory);
 
   function pool() external view returns (IUniswapV3Pool);
-
+  
   function currentTick() external view returns (int24 tick);
   
   function tickSpacing() external view returns (int24 spacing);
