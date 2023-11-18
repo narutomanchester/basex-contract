@@ -26,7 +26,9 @@ async function main() {
   ]);
   await rewardsDistributor.waitForDeployment();
 
-  console.log(`RewardsDistributor deployed. Address: ${rewardsDistributor.target}`);
+  console.log(
+    `RewardsDistributor deployed. Address: ${rewardsDistributor.target}`
+  );
 }
 
 // We recommend this pattern to be able to use async/await everywhere

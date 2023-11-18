@@ -6,9 +6,9 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import './interfaces/IUniswapV3Pool.sol';
+import { IHypervisor }  from './interfaces/IHypervisor.sol';
+
 import './interfaces/IBribe.sol';
 import "./libraries/Math.sol";
 
@@ -378,8 +378,8 @@ contract GaugeV2_CL is ReentrancyGuard, Ownable {
         if (claimed0 > 0 || claimed1 > 0) {
             uint _fees0 = fees0 + claimed0;
             uint _fees1 = fees1 + claimed1;
-            (address _token0) = IUniswapV3Pool(_token).token0();
-            (address _token1) = IUniswapV3Pool(_token).token1();
+            (address _token0) = address(IHypervisor(_token).token0());
+            (address _token1) = address(IHypervisor(_token).token1());
             if (_fees0  > 0) {
                 fees0 = 0;
                 IERC20(_token0).approve(internal_bribe, 0);

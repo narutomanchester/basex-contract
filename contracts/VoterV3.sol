@@ -27,7 +27,7 @@ contract VoterV3 is IVoter, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     address public _ve;                                         // the ve token that governs these contracts
     address public factory;                                     // classic stable and volatile Pair Factory
     address[] public factories;                                 // Array with all the pair factories
-    address internal base;                                      // $the token
+    address internal base;                                      // $BXT token
     address public gaugefactory;                                // gauge factory
     address[] public gaugeFactories;                            // array with all the gauge factories
     address public bribefactory;                                // bribe factory (internal and external)
@@ -488,7 +488,7 @@ contract VoterV3 is IVoter, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     }    
 
     /// @notice attach a veNFT tokenID to a gauge. This is used for boost farming 
-    /// @dev boost not available in Thena. Keep the function in case we need it for future updates. 
+    /// @dev boost not available in BaseX. Keep the function in case we need it for future updates. 
     function attachTokenToGauge(uint tokenId, address account) external {
         require(isGauge[msg.sender]);
         require(isAlive[msg.sender]); // killed gauges cannot attach tokens to themselves
@@ -498,7 +498,7 @@ contract VoterV3 is IVoter, OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
     
     /// @notice detach a veNFT tokenID to a gauge. This is used for boost farming 
-    /// @dev boost not available in Thena. Keep the function in case we need it for future updates. 
+    /// @dev boost not available in BaseX. Keep the function in case we need it for future updates. 
     function detachTokenFromGauge(uint tokenId, address account) external {
         require(isGauge[msg.sender]);
         if (tokenId > 0) IVotingEscrow(_ve).detach(tokenId);
@@ -577,7 +577,7 @@ contract VoterV3 is IVoter, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         //     //isPair = false;
         // }
 
-        // gov can create for any pool, even non-Thena pairs
+        // gov can create for any pool, even non-BaseX pairs
         if (!IPermissionsRegistry(permissionRegistry).hasRole("GOVERNANCE",msg.sender)) { 
             // require(isPair, "!_pool");
             require(isWhitelisted[tokenA] && isWhitelisted[tokenB], "!whitelisted");
@@ -586,10 +586,10 @@ contract VoterV3 is IVoter, OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
         // create internal and external bribe
         address _owner = IPermissionsRegistry(permissionRegistry).baseXTeamMultisig();
-        string memory _type =  string.concat("Thena LP Fees: ", IERC20(_pool).symbol() );
+        string memory _type =  string.concat("BaseX LP Fees: ", IERC20(_pool).symbol() );
         _internal_bribe = IBribeFactory(bribefactory).createBribe(_owner, tokenA, tokenB, _type);
 
-        _type = string.concat("Thena Bribes: ", IERC20(_pool).symbol() );
+        _type = string.concat("BaseX Bribes: ", IERC20(_pool).symbol() );
         _external_bribe = IBribeFactory(bribefactory).createBribe(_owner, tokenA, tokenB, _type);
 
         // create gauge

@@ -67,7 +67,7 @@ contract RewardsDistributor is ReentrancyGuard, IRewardsDistributor {
 
         voting_escrow = _voting_escrow;
 
-        depositor = address(0x86069FEb223EE303085a1A505892c9D4BdBEE996);
+        // depositor = address(0x86069FEb223EE303085a1A505892c9D4BdBEE996);
         start_time = _t;
 
         owner = msg.sender;
