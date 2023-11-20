@@ -498,21 +498,22 @@ describe("BaseX - Voter Section", function () {
     console.log("Vote power:", votingPower);
 
     await voterV3.vote(toVoteNFTID, [hyperWETHUSDCADddress], [100]);
-    console.log(await voterV3.totalWeight());
+    console.log("total weight:", await voterV3.totalWeight());
   });
 
   it("Should send rewards to voter and distribute", async function () {
     const amountIn = ethers.parseEther("1000");
     await BXT.approve(voterV3.target, amountIn);
-    let blockNumBefore = await ethers.provider.getBlockNumber();
-    let blockBefore = await ethers.provider.getBlock(blockNumBefore);
-    console.log("Block timestamp before:", blockBefore?.timestamp);
-    console.log("ActivePeriod:", await minter.active_period());
+    let blockNum = await ethers.provider.getBlockNumber();
+    let block = await ethers.provider.getBlock(blockNum);
+    const activePeriod = await minter.active_period();
+    console.log("Block timestamp before:", block?.timestamp);
+    console.log("ActivePeriod:", activePeriod);
     await ethers.provider.send("evm_increaseTime", [7 * 86400]);
     await ethers.provider.send("evm_mine");
-    blockNumBefore = await ethers.provider.getBlockNumber();
-    blockBefore = await ethers.provider.getBlock(blockNumBefore);
-    console.log("Block timestamp after:", blockBefore?.timestamp);
+    blockNum = await ethers.provider.getBlockNumber();
+    block = await ethers.provider.getBlock(blockNum);
+    console.log("Block timestamp after:", block?.timestamp);
     console.log("checked:", await minter.check());
     await minter.update_period();
 
@@ -524,10 +525,49 @@ describe("BaseX - Voter Section", function () {
 
     console.log("Minter of BXT", await BXT.minter());
 
-    await ethers.provider.send("evm_increaseTime", [5 * 86400]);
+    expect(await BXT.balanceOf(gauge.target)).to.equal(0);
+
+    await voterV3.distributeAll();
+
+    const balanceOfGauge = await BXT.balanceOf(gauge.target);
+    expect(balanceOfGauge).to.above(0);
+
+    console.log("Gauge BXT balance after distribute all:", balanceOfGauge);
+  });
+});
+
+describe("Thena - Claim rewards Section", function () {
+  beforeEach(async () => {
+    await ethers.provider.send("evm_increaseTime", [5]);
     await ethers.provider.send("evm_mine");
 
-    // expect(await voterV3.totalWeightAt(1700299329)).to.above(0);
-    // expect(await BXT.balanceOf(gauge.target)).to.equal(0);
+    const blockNumBefore = await ethers.provider.getBlockNumber();
+    const blockBefore = await ethers.provider.getBlock(blockNumBefore);
+    timestampBefore = blockBefore ? blockBefore.timestamp : 0;
+  });
+
+  it("Should harvest from gauge + extra rewarder", async function () {
+    const balanceBefore = await BXT.balanceOf(owner.address);
+    console.log("BXT balance before getReward: ", balanceBefore);
+    await gauge["getReward()"]();
+    const balancAfter = await BXT.balanceOf(owner.address);
+    console.log("BXT balance after getReward: ", balancAfter);
+    expect(balancAfter).to.above(balanceBefore);
+  });
+
+  it("Should get intBribes", async function () {
+    await ethers.provider.send("evm_increaseTime", [8 * 86400]);
+    await ethers.provider.send("evm_mine");
+    await voterV3.distributeAll();
+    await ethers.provider.send("evm_increaseTime", [8 * 86400]);
+    await ethers.provider.send("evm_mine");
+    await voterV3.distributeAll();
+
+    const balanceBefore = await weth.balanceOf(owner.address);
+    console.log("WETH balance before get intBribes: ", balanceBefore);
+    await intBribe["getReward(address[])"]([weth.target]);
+    const balancAfter = await weth.balanceOf(owner.address);
+    console.log("WETH balance after get intBribes: ", balancAfter);
+    expect(balancAfter).to.above(balanceBefore);
   });
 });
