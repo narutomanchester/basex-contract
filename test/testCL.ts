@@ -24,23 +24,19 @@ import {
 const swapRouterAddress = "0xde2Bd2ffEA002b8E84ADeA96e5976aF664115E2c";
 
 // token addresses
-const wethAddress = "0x5FeaeBfB4439F3516c74939A9D04e95AFE82C4ae";
-const usdcAddress = "0x976fcd02f7C4773dd89C309fBF55D5923B4c98a1";
-// const BXTAddress = "0xB4f34879C2c3db50934E5069CE01fD5EcE3Aa051";
-// const veBXTAddress = "0xb84De814F9834d600039a0151E7f0105e1Fcf923";
+const wethAddress = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
+const usdcAddress = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0";
 
-// const rewardDistributorAddress = "0x986aaa537b8cc170761FDAC6aC4fc7F9d8a20A8C";
+const uniProxyAddress = "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318";
+const hyperWETHUSDCADddress = "0xee695bb007b55c9dAa2DEDc09051165cC2618bfC";
 
-const uniProxyAddress = "0x82e01223d51Eb87e16A03E24687EDF0F294da6f1";
-const hyperWETHUSDCADddress = "0x32EEce76C2C2e8758584A83Ee2F522D4788feA0f";
+const UNISWAP_V3_FACTORY_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+const GAMMA_FEE_RECEIPIENT = "0x90F79bf6EB2c4f870365E785982E1f101E93b906";
 
 // users
 const BigHolder = ethers.getAddress(
-  "0x8894E0a0c962CB723c1976a4421c95949bE2D4E3"
+  "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC"
 ); //used to add liquidity and swaps
-
-const UNISWAP_V3_FACTORY_ADDRESS = "0x4826533B4897376654Bb4d4AD88B7faFD0C98528";
-const GAMMA_FEE_RECEIPIENT = "0xfbE533Ac756f65E783B00df7B860755959B51880";
 
 let timestampBefore: number;
 let owner: HardhatEthersSigner;
@@ -110,7 +106,7 @@ describe("BaseX - Deployment Section", function () {
       hyperWETHUSDCADddress
     );
 
-    swapRouter = await ethers.getContractAt("ISwapRouter", swapRouterAddress);
+    // swapRouter = await ethers.getContractAt("ISwapRouter", swapRouterAddress);
 
     weth = await ethers.getContractAt("TestToken", wethAddress);
     usdc = await ethers.getContractAt("TestToken", usdcAddress);
@@ -238,6 +234,8 @@ describe("BaseX - Deployment Section", function () {
 
     await voterV3.waitForDeployment();
 
+    console.log("VoterV3:", voterV3.target);
+
     expect(await voterV3.owner()).to.equal(owner.address);
   });
 
@@ -254,9 +252,19 @@ describe("BaseX - Deployment Section", function () {
 
     await minter.waitForDeployment();
 
-    expect(await minter.team()).to.equal(owner.address);
+    console.log("minter:", minter.target);
 
+    expect(await minter.team()).to.equal(owner.address);
+  });
+
+  it("Should set all", async function () {
+    // BXT
     console.log("BXT Minter before:", await BXT.minter());
+    await BXT.initialMint(owner.address);
+
+    const bxtBalance = await BXT.balanceOf(owner.address);
+    console.log("BXT Balance:", bxtBalance);
+
     await BXT.setMinter(minter.target);
     console.log(
       "BXT Minter after:",
@@ -264,9 +272,7 @@ describe("BaseX - Deployment Section", function () {
       minter.target,
       owner.address
     );
-  });
 
-  it("Should set all", async function () {
     //voter
     await voterV3._init(
       [wethAddress, usdcAddress],
@@ -274,7 +280,7 @@ describe("BaseX - Deployment Section", function () {
       minter.target
     );
 
-    //
+    //minter
     await minter._initialize(
       [owner.address],
       [BigInt(10_000 * 1e18).toString()],
@@ -325,11 +331,11 @@ describe("BaseX - LP Section", function () {
     console.log("Hypervisor suggest deposit USDC amount:", suggestedAmount);
 
     await weth.approve(hyperWETHUSDCADddress, amount0);
-    await usdc.approve(hyperWETHUSDCADddress, suggestedAmount.toString());
+    await usdc.approve(hyperWETHUSDCADddress, amount0);
 
     await uniProxy.deposit(
       amount0.toString(),
-      suggestedAmount.toString(),
+      amount0.toString(),
       owner.address,
       hyperWETHUSDCADddress,
       [0, 0, 0, 0]
@@ -469,10 +475,6 @@ describe("BaseX - Voter Section", function () {
   });
 
   it("Should lock BXT to get veBXT", async function () {
-    // await BXT.initialMint(owner.address);
-    // const bxtBalance = await BXT.balanceOf(owner.address);
-    // console.log("BXT Balance:", bxtBalance);
-
     // const lockAmount = ethers.parseEther("1000");
     // await BXT.approve(veBXT.target, lockAmount);
 
@@ -569,5 +571,7 @@ describe("Thena - Claim rewards Section", function () {
     const balancAfter = await weth.balanceOf(owner.address);
     console.log("WETH balance after get intBribes: ", balancAfter);
     expect(balancAfter).to.above(balanceBefore);
+
+    // claimFees()
   });
 });

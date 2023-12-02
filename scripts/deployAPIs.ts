@@ -1,24 +1,41 @@
 import { ethers, upgrades } from "hardhat";
+import hre from "hardhat";
 
-const voterV3 = "0x95401dc811bb5740090279Ba06cfA8fcF6113778";
-const rewardDistributor = "0xa82fF9aFd8f496c3d6ac40E2a0F282E47488CFc9";
-const uniswapV3Factory = "0x4826533B4897376654Bb4d4AD88B7faFD0C98528";
+const voterV3 = "0x6079f8B37980181b4aC09610f6Ff4088A87Bc282";
+const rewardDistributor = "0x7E342297C17b595d9f66889f99D30295a7739674";
 
 async function main() {
   console.log("Deploying APIs...");
 
   // PAIR API
   const pairAPIContract = await ethers.getContractFactory("PairAPI");
-  const pairAPI = await upgrades.deployProxy(
-    pairAPIContract,
-    [voterV3, uniswapV3Factory],
+  const pairAPI = await upgrades.deployProxy(pairAPIContract, [voterV3], {
+    initializer: "initialize",
+  });
+  await pairAPI.waitForDeployment();
+  console.log(`PairAPI deployed. Address: ${pairAPI.target}`);
+
+  await hre.run("verify:verify", {
+    address: pairAPI.target,
+    constructorArguments: [],
+  });
+
+  // veNFT API
+  const veNFTAPIContract = await ethers.getContractFactory("veNFTAPI");
+  const veNFTAPI = await upgrades.deployProxy(
+    veNFTAPIContract,
+    [voterV3, rewardDistributor, pairAPI.target],
     {
       initializer: "initialize",
     }
   );
-  await pairAPI.waitForDeployment();
+  await veNFTAPI.waitForDeployment();
+  console.log(`veNFTAPI deployed. Address: ${veNFTAPI.target}`);
 
-  console.log(`PairAPI deployed. Address: ${pairAPI.target}`);
+  await hre.run("verify:verify", {
+    address: veNFTAPI.target,
+    constructorArguments: [],
+  });
 
   // REWARD API
   const rewardAPIContract = await ethers.getContractFactory("RewardAPI");
@@ -26,8 +43,12 @@ async function main() {
     initializer: "initialize",
   });
   await rewardAPI.waitForDeployment();
-
   console.log(`RewardAPI deployed. Address: ${rewardAPI.target}`);
+
+  await hre.run("verify:verify", {
+    address: rewardAPI.target,
+    constructorArguments: [],
+  });
 }
 
 // We recommend this pattern to be able to use async/await everywhere
