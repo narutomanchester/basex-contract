@@ -8,7 +8,7 @@ import {
   VotingEscrow,
   IUniProxy,
   ISwapRouter,
-  TestToken,
+  MockERC20,
   PermissionsRegistry,
   BribeFactoryV3,
   RewardsDistributor,
@@ -45,8 +45,8 @@ let veBXT: VotingEscrow;
 let uniProxy: IUniProxy;
 let hyperWETHUSDC: IHypervisor;
 let swapRouter: ISwapRouter;
-let weth: TestToken;
-let usdc: TestToken;
+let weth: MockERC20;
+let usdc: MockERC20;
 let permissionsRegistry: PermissionsRegistry;
 let bribeFactoryV3: any;
 let gaugeFactoryV2CL: any;
@@ -108,8 +108,8 @@ describe("BaseX - Deployment Section", function () {
 
     // swapRouter = await ethers.getContractAt("ISwapRouter", swapRouterAddress);
 
-    weth = await ethers.getContractAt("TestToken", wethAddress);
-    usdc = await ethers.getContractAt("TestToken", usdcAddress);
+    weth = await ethers.getContractAt("MockERC20", wethAddress);
+    usdc = await ethers.getContractAt("MockERC20", usdcAddress);
   });
 
   it("Should deploy PermissionsRegistry.sol", async function () {
