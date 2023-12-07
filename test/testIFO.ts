@@ -638,5 +638,409 @@ describe("IFO DeployerV3", () => {
         "Harvest: Did not participate"
       );
     });
+
+    it("Bob harvests for pool0", async () => {
+      const previousOCBalance = new BN(await mockOC.balanceOf(bob));
+      const previousLPBalance = new BN(await mockLP.balanceOf(bob));
+
+      const result = await mockIFO.connect(bob).harvestPool(0);
+
+      expect(result)
+        .to.emit(mockIFO, "Harvest")
+        .withArgs({
+          user: bob,
+          offeringAmount: parseEther("2.5").toString(),
+          excessAmount: parseEther("0.15").toString(),
+          pid: "0",
+        });
+
+      // Verify user balances changed accordingly
+      const newOCBalance = new BN(await mockOC.balanceOf(bob));
+      const changeOCBalance = newOCBalance.sub(previousOCBalance);
+      const newLPBalance = new BN(await mockLP.balanceOf(bob));
+      const changeLPBalance = newLPBalance.sub(previousLPBalance);
+
+      expect(changeOCBalance).to.be.equal(parseEther("2.5"));
+      expect(changeLPBalance).to.be.equal(parseEther("0.15"));
+
+      // Verify user has claimed for only one of the pools
+      const result2 = await mockIFO.viewUserInfo(bob, ["0", "1"]);
+
+      expect(result2[1][0]).to.equal(true);
+      expect(result2[1][1]).to.equal(false);
+    });
+
+    it("Cannot harvest twice", async () => {
+      await expect(mockIFO.connect(bob).harvestPool(0)).to.be.revertedWith(
+        "Harvest: Already done"
+      );
+    });
+
+    it("Carol harvests for pool0", async () => {
+      const previousOCBalance = new BN(await mockOC.balanceOf(carol));
+      const previousLPBalance = new BN(await mockLP.balanceOf(carol));
+
+      expect(await mockIFO.connect(carol).harvestPool(0))
+        .to.emit(mockIFO, "Harvest")
+        .withArgs({
+          user: carol,
+          offeringAmount: parseEther("3.125").toString(),
+          excessAmount: parseEther("0.1875").toString(),
+          pid: 0,
+        });
+
+      // Verify user balances changed accordingly
+      const newOCBalance = new BN(await mockOC.balanceOf(carol));
+      const changeOCBalance = newOCBalance.sub(previousOCBalance);
+      const newLPBalance = new BN(await mockLP.balanceOf(carol));
+      const changeLPBalance = newLPBalance.sub(previousLPBalance);
+
+      expect(changeOCBalance).to.be.equal(parseEther("3.125"));
+      expect(changeLPBalance).to.be.equal(parseEther("0.1875"));
+
+      // Verify user has claimed for only one of the pools
+      const result = await mockIFO.viewUserInfo(carol, [0, 1]);
+
+      expect(result[1][0]).to.equal(true);
+      expect(result[1][1]).to.equal(false);
+    });
+
+    it("Bob harvests for pool1", async () => {
+      const previousOCBalance = new BN(await mockOC.balanceOf(bob));
+      const previousLPBalance = new BN(await mockLP.balanceOf(bob));
+
+      const result = await mockIFO.connect(bob).harvestPool(1);
+
+      expect(result)
+        .to.emit(mockIFO, "Harvest")
+        .withArgs({
+          user: bob,
+          offeringAmount: parseEther("4").toString(),
+          excessAmount: parseEther("3.564").toString(),
+          pid: "1",
+        });
+
+      // Verify user balances changed accordingly
+      const newOCBalance = new BN(await mockOC.balanceOf(bob));
+      const changeOCBalance = newOCBalance.sub(previousOCBalance);
+      const newLPBalance = new BN(await mockLP.balanceOf(bob));
+      const changeLPBalance = newLPBalance.sub(previousLPBalance);
+
+      expect(changeOCBalance).to.be.equal(parseEther("4"));
+      expect(changeLPBalance).to.be.equal(parseEther("3.564"));
+
+      // Verify user has claimed
+      const result2 = await mockIFO.viewUserInfo(bob, [0, 1]);
+
+      expect(result2[1][0]).to.equal(true);
+      expect(result2[1][1]).to.equal(true);
+
+      // Verify that the sumTaxesOverflow has increased
+      // 3.6 - 3.564 = 0.036
+      expect((await mockIFO.viewPoolInformation(1))[5]).to.be.equal(
+        parseEther("0.036")
+      );
+    });
+
+    it("Cannot harvest twice", async () => {
+      await expect(mockIFO.connect(bob).harvestPool(1)).to.be.revertedWith(
+        "Harvest: Already done"
+      );
+    });
+
+    it("Carol harvests for pool1", async () => {
+      const previousOCBalance = new BN(await mockOC.balanceOf(carol));
+      const previousLPBalance = new BN(await mockLP.balanceOf(carol));
+
+      // Carol contributed 5 LP tokens out of 1,000 LP tokens deposited
+      // Tax rate on overflow amount is 1%
+      // 0.5 LP token gets consumed // 4.5 * (1 - 1%) = 4.455 LP returns
+      // 0.5 LP --> 5 tokens received
+      expect(await mockIFO.connect(carol).harvestPool(1))
+        .to.emit(mockIFO, "Harvest")
+        .withArgs({
+          user: carol,
+          offeringAmount: parseEther("5").toString(),
+          excessAmount: parseEther("4.455").toString(),
+          pid: "1",
+        });
+
+      // Verify user balances changed accordingly
+      const newOCBalance = new BN(await mockOC.balanceOf(carol));
+      const changeOCBalance = newOCBalance.sub(previousOCBalance);
+      const newLPBalance = new BN(await mockLP.balanceOf(carol));
+      const changeLPBalance = newLPBalance.sub(previousLPBalance);
+
+      expect(changeOCBalance).to.be.equal(parseEther("5"));
+      expect(changeLPBalance).to.be.equal(parseEther("4.455"));
+
+      // Verify user has claimed
+      const result = await mockIFO.viewUserInfo(carol, [0, 1]);
+
+      expect(result[1][0]).to.equal(true);
+      expect(result[1][1]).to.equal(true);
+
+      // Verify that the sumTaxesOverflow has increased
+      // 0.036 + (4.5 - 4.455) = 0.081
+      expect((await mockIFO.viewPoolInformation(1))[5]).to.be.equal(
+        parseEther("0.081")
+      );
+    });
+
+    it("David harvests for pool1", async () => {
+      const previousOCBalance = new BN(await mockOC.balanceOf(david));
+      const previousLPBalance = new BN(await mockLP.balanceOf(david));
+
+      // David contributed 3 LP tokens out of 1,000 LP tokens deposited
+      // Tax rate on overflow amount is 1%
+      // 0.3 LP token gets consumed // 2.7 * (1 - 1%) = 2.673 LP returns
+      // 0.3 LP --> 3 tokens received
+      expect(await mockIFO.connect(david).harvestPool(1))
+        .to.emit(mockIFO, "Harvest")
+        .withArgs({
+          user: david,
+          offeringAmount: parseEther("3").toString(),
+          excessAmount: parseEther("2.673").toString(),
+          pid: "1",
+        });
+
+      // Verify user balances changed accordingly
+      const newOCBalance = new BN(await mockOC.balanceOf(david));
+      const changeOCBalance = newOCBalance.sub(previousOCBalance);
+      const newLPBalance = new BN(await mockLP.balanceOf(david));
+      const changeLPBalance = newLPBalance.sub(previousLPBalance);
+
+      expect(changeOCBalance).to.be.equal(parseEther("3"));
+      expect(changeLPBalance).to.be.equal(parseEther("2.673"));
+
+      // Verify user has claimed
+      const result = await mockIFO.viewUserInfo(david, [0, 1]);
+
+      expect(result[1][1]).to.equal(true);
+
+      // Verify that the sumTaxesOverflow has increased
+      // 0.081 + (2.7 - 2.673) = 0.108
+      expect((await mockIFO.viewPoolInformation(1))[5]).to.be.equal(
+        parseEther("0.108")
+      );
+    });
+
+    it("Whale (account 0) harvests for pool1", async () => {
+      const previousOCBalance = new BN(await mockOC.balanceOf(accounts[0]));
+      const previousLPBalance = new BN(await mockLP.balanceOf(accounts[0]));
+
+      // Whale contributed 88 LP tokens out of 1,000 LP tokens deposited
+      // Tax rate on overflow amount is 1%
+      // 8.8 LP token gets consumed // 79.2 * (1 - 1%) = 78.408 LP returns
+      // 8.8 LP --> 88 tokens received
+      expect(await mockIFO.connect(accounts[0]).harvestPool(1))
+        .to.emit(mockIFO, "Harvest")
+        .withArgs({
+          user: accounts[0],
+          offeringAmount: parseEther("88").toString(),
+          excessAmount: parseEther("78.408").toString(),
+          pid: "1",
+        });
+
+      // Verify user balances changed accordingly
+      const newOCBalance = new BN(await mockOC.balanceOf(accounts[0]));
+      const changeOCBalance = newOCBalance.sub(previousOCBalance);
+      const newLPBalance = new BN(await mockLP.balanceOf(accounts[0]));
+      const changeLPBalance = newLPBalance.sub(previousLPBalance);
+
+      expect(changeOCBalance).to.be.equal(parseEther("88"));
+      expect(changeLPBalance).to.be.equal(parseEther("78.408"));
+
+      // Verify user has claimed
+      const result = await mockIFO.viewUserInfo(accounts[0], [0, 1]);
+
+      expect(result[1][1]).to.equal(true);
+
+      // Verify that the sumTaxesOverflow has increased
+      // 0.108 + (79.2 - 78.408) = 0.9
+      expect((await mockIFO.viewPoolInformation(1))[5]).to.be.equal(
+        parseEther("0.9")
+      );
+    });
+
+    it("Whale (account 1) harvests for pool1", async () => {
+      const previousOCBalance = new BN(await mockOC.balanceOf(accounts[1]));
+      const previousLPBalance = new BN(await mockLP.balanceOf(accounts[1]));
+
+      // Whale contributed 300 LP tokens out of 1,000 LP tokens deposited
+      // Tax rate on overflow amount is 1%
+      // 30 LP token gets consumed // 270 * (1 - 1%) = 267.3 LP returns
+      // 30 LP --> 300 tokens received
+      expect(await mockIFO.connect(accounts[1]).harvestPool(1))
+        .to.emit(mockIFO, "Harvest")
+        .withArgs({
+          user: accounts[1],
+          offeringAmount: parseEther("300").toString(),
+          excessAmount: parseEther("267.3").toString(),
+          pid: "1",
+        });
+
+      // Verify user balances changed accordingly
+      const newOCBalance = new BN(await mockOC.balanceOf(accounts[1]));
+      const changeOCBalance = newOCBalance.sub(previousOCBalance);
+      const newLPBalance = new BN(await mockLP.balanceOf(accounts[1]));
+      const changeLPBalance = newLPBalance.sub(previousLPBalance);
+
+      expect(changeOCBalance).to.be.equal(parseEther("300"));
+      expect(changeLPBalance).to.be.equal(parseEther("267.3"));
+
+      // Verify user has claimed
+      const result = await mockIFO.viewUserInfo(accounts[1], [0, 1]);
+
+      expect(result[1][1]).to.equal(true);
+
+      // Verify that the sumTaxesOverflow has increased
+      // 0.9 + 2.7 = 3.6
+      expect((await mockIFO.viewPoolInformation(1))[5]).to.be.equal(
+        parseEther("3.6")
+      );
+    });
+
+    it("Whale (account 2) harvests for pool1", async () => {
+      const previousOCBalance = new BN(await mockOC.balanceOf(accounts[2]));
+      const previousLPBalance = new BN(await mockLP.balanceOf(accounts[2]));
+
+      // Whale contributed 600 LP tokens out of 1,000 LP tokens deposited
+      // Tax rate on overflow amount is 1%
+      // 60 LP token gets consumed // 540 * (1 - 1%) = 534.6 LP returns
+      // 60 LP --> 600 tokens received
+      expect(await mockIFO.connect(accounts[2]).harvestPool(1))
+        .to.emit(mockIFO, "Harvest")
+        .withArgs({
+          user: accounts[2],
+          offeringAmount: parseEther("600").toString(),
+          excessAmount: parseEther("534.6").toString(),
+          pid: "1",
+        });
+
+      // Verify user balances changed accordingly
+      const newOCBalance = new BN(await mockOC.balanceOf(accounts[2]));
+      const changeOCBalance = newOCBalance.sub(previousOCBalance);
+      const newLPBalance = new BN(await mockLP.balanceOf(accounts[2]));
+      const changeLPBalance = newLPBalance.sub(previousLPBalance);
+
+      expect(changeOCBalance).to.be.equal(parseEther("600"));
+      expect(changeLPBalance).to.be.equal(parseEther("534.6"));
+
+      // Verify user has claimed
+      const result = await mockIFO.viewUserInfo(accounts[2], [0, 1]);
+
+      expect(result[1][1]).to.equal(true);
+
+      // Verify that the sumTaxesOverflow has increased
+      // 3.6 + 5.4 = 9
+      expect((await mockIFO.viewPoolInformation(1))[5]).to.be.equal(
+        parseEther("9")
+      );
+    });
+  });
+
+  describe("IFO - ADMIN FUNCTIONS", async () => {
+    it("Admin can withdraw funds", async () => {
+      let amountToWithdraw = (await mockIFO.viewPoolInformation(1))[5];
+
+      // Withdraw LP raised + TAX OVERFLOW
+      amountToWithdraw = amountToWithdraw + raisingAmountTotal;
+
+      const result = await mockIFO
+        .connect(alice)
+        .finalWithdraw(amountToWithdraw, 0);
+
+      expect(result).to.emit(mockIFO, "AdminWithdraw").withArgs({
+        amountLP: amountToWithdraw.toString(),
+        amountOfferingToken: "0",
+      });
+
+      const receipt = await result.wait();
+      expect(receipt).to.emit(mockLP, "Transfer").withArgs({
+        from: mockIFO.target,
+        to: alice,
+        value: amountToWithdraw.toString(),
+      });
+
+      it("It is not possible to change IFO start/end blocks after start", async () => {
+        await expect(
+          mockIFO.connect(alice).updateStartAndEndBlocks(1, 2)
+        ).to.be.revertedWith("Operations: IFO has started");
+      });
+
+      it("It is not possible to change IFO parameters after start", async () => {
+        await expect(
+          mockIFO.connect(alice).setPool(
+            "0",
+            "0",
+            "0",
+            false, // tax
+            0
+          )
+        ).to.be.revertedWith("Operations: IFO has started");
+
+        await expect(
+          mockIFO.connect(alice).setPool(
+            "0",
+            "0",
+            "0",
+            false, // tax
+            1
+          )
+        ).to.be.revertedWith("Operations: IFO has started");
+      });
+    });
+
+    it("Owner can recover funds if wrong token", async () => {
+      const wrongLP = await ethers.deployContract(
+        "MockERC20",
+        ["Wrong LP", "LP", "100"],
+        { from: alice }
+      );
+
+      // Transfer wrong LP by "accident"
+      await wrongLP.transfer(mockIFO.target, "1");
+
+      const result = await mockIFO
+        .connect(alice)
+        .recoverWrongTokens(wrongLP.target, "1");
+
+      expect(result)
+        .to.emit(mockIFO, "AdminTokenRecovery")
+        .withArgs({ tokenAddress: wrongLP.target, amountTokens: "1" });
+
+      await expect(
+        mockIFO.connect(alice).recoverWrongTokens(mockOC.target, "1")
+      ).to.be.revertedWith("Recover: Cannot be offering token");
+
+      await expect(
+        mockIFO.connect(alice).recoverWrongTokens(mockLP.target, "1")
+      ).to.be.revertedWith("Recover: Cannot be LP token");
+    });
+
+    it("Only owner can call functions for admin", async () => {
+      await expect(
+        mockIFO.connect(carol).finalWithdraw("0", "1")
+      ).to.be.revertedWith("Ownable: caller is not the owner");
+
+      await expect(
+        mockIFO.connect(carol).setPool(
+          offeringAmountPool0,
+          raisingAmountPool1,
+          limitPerUserInLP,
+          false, // tax
+          0
+        )
+      ).to.be.revertedWith("Ownable: caller is not the owner");
+
+      await expect(
+        mockIFO.connect(carol).recoverWrongTokens(mockOC.target, "1")
+      ).to.be.revertedWith("Ownable: caller is not the owner");
+
+      await expect(
+        mockIFO.connect(carol).updateStartAndEndBlocks(1, 2)
+      ).to.be.revertedWith("Ownable: caller is not the owner");
+    });
   });
 });
