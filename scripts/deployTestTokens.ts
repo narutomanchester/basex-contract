@@ -6,7 +6,7 @@ async function main() {
 
   const [owner] = await ethers.getSigners();
 
-  const weth = await ethers.deployContract("TestToken", [
+  const weth = await ethers.deployContract("MockERC20", [
     "Wrapped Ethereum",
     "WETH",
   ]);
@@ -18,10 +18,10 @@ async function main() {
   await hre.run("verify:verify", {
     address: weth.target,
     constructorArguments: ["Wrapped Ethereum", "WETH"],
-    contract: "contracts/TestToken.sol:TestToken"
+    contract: "MockERC20",
   });
 
-  const usdc = await ethers.deployContract("TestToken", ["USD Coin", "USDC"]);
+  const usdc = await ethers.deployContract("MockERC20", ["USD Coin", "USDC"]);
 
   console.log(`USDC deployed. Address: ${usdc.target}`);
   balance = await usdc.balanceOf(owner.address);
@@ -30,7 +30,7 @@ async function main() {
   await hre.run("verify:verify", {
     address: usdc.target,
     constructorArguments: ["USD Coin", "USDC"],
-    contract: "contracts/TestToken.sol:TestToken"
+    contract: "MockERC20",
   });
 }
 
