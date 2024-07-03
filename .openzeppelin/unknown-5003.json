@@ -1,0 +1,282 @@
+{
+  "manifestVersion": "3.2",
+  "admin": {
+    "address": "0x843B881cDeED5EB7a6CF4662210A97bd99EF28ec",
+    "txHash": "0x666607bc7c7066898a1ce2b30c44461ae3fdac73319b6594a0f93862da0f8892"
+  },
+  "proxies": [
+    {
+      "address": "0xDc354685e67bF85063d5a2E7e5AA16DCD78EFe68",
+      "txHash": "0xd2e2e9cb06e0530197940efd279d154d47ec385b06b56ee74d67655e29059f39",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x1582721ED85084df0840c50AC5c1338240039656",
+      "txHash": "0x675865acb2358e0f559aca1e4309a04f0aa9c83d69b88b4b7e43c505b9b273d6",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x174714364a475a38D7Dac3F0d9a1Bf781Bca63b4",
+      "txHash": "0x79f979ce2832c4a4890baef9f3f0c7026995c446f7047882931ba5adb4951df9",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xd43D661Ae32BD4Ccd712575492513F6fAeD46046",
+      "txHash": "0x9931cc023063dbd064ecc6e467ab12a3422381485cdfb440c7a28ccafbcdb2a2",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x2D117d81940458BfF9C93b2F8E04282d11043B63",
+      "txHash": "0xf69c33081f18e1301b226826c691fc45033a6db992c8342cf3563d73803e91ac",
+      "kind": "transparent"
+    }
+  ],
+  "impls": {
+    "d57cbab19be7c6af27877d379e5e8a9defa1bede4033ec0caab04d6c5945ca59": {
+      "address": "0xA38A2ce68A7a6dDFf42FbC6DBD7d0D81126eCaE5",
+      "txHash": "0x28111aa4bcdf0d2090cde2e5cbc03d3911d3ea4e1bd059d49a151ebaed4e4627",
+      "layout": {
+        "solcVersion": "0.8.13",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:68"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "last_bribe",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_address",
+            "contract": "BribeFactoryV3",
+            "src": "contracts/factories/BribeFactoryV3.sol:19"
+          },
+          {
+            "label": "_bribes",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_address)dyn_storage",
+            "contract": "BribeFactoryV3",
+            "src": "contracts/factories/BribeFactoryV3.sol:20"
+          },
+          {
+            "label": "voter",
+            "offset": 0,
+            "slot": "103",
+            "type": "t_address",
+            "contract": "BribeFactoryV3",
+            "src": "contracts/factories/BribeFactoryV3.sol:21"
+          },
+          {
+            "label": "defaultRewardToken",
+            "offset": 0,
+            "slot": "104",
+            "type": "t_array(t_address)dyn_storage",
+            "contract": "BribeFactoryV3",
+            "src": "contracts/factories/BribeFactoryV3.sol:23"
+          },
+          {
+            "label": "permissionsRegistry",
+            "offset": 0,
+            "slot": "105",
+            "type": "t_contract(IPermissionsRegistry)24249",
+            "contract": "BribeFactoryV3",
+            "src": "contracts/factories/BribeFactoryV3.sol:25"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IPermissionsRegistry)24249": {
+            "label": "contract IPermissionsRegistry",
+            "numberOfBytes": "20"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        },
+        "namespaces": {}
+      }
+    },
+    "d93f8f3b79ffbe37090d024e93a680d9a26ce5821a259b416c415f6c3f9ab25b": {
+      "address": "0x7bf08Fb86257986cf860e3e937bD8a647b71930b",
+      "txHash": "0x2e54f92ffa04dd59f8a66646277fe60a15192b660822def4e61aa7103cfbe66b",
+      "layout": {
+        "solcVersion": "0.8.13",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:68"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "last_gauge",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_address",
+            "contract": "GaugeFactoryV2_CL",
+            "src": "contracts/factories/GaugeFactoryV2_CL.sol:24"
+          },
+          {
+            "label": "last_feeVault",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_address",
+            "contract": "GaugeFactoryV2_CL",
+            "src": "contracts/factories/GaugeFactoryV2_CL.sol:25"
+          },
+          {
+            "label": "permissionsRegistry",
+            "offset": 0,
+            "slot": "103",
+            "type": "t_address",
+            "contract": "GaugeFactoryV2_CL",
+            "src": "contracts/factories/GaugeFactoryV2_CL.sol:26"
+          },
+          {
+            "label": "gammaFeeRecipient",
+            "offset": 0,
+            "slot": "104",
+            "type": "t_address",
+            "contract": "GaugeFactoryV2_CL",
+            "src": "contracts/factories/GaugeFactoryV2_CL.sol:27"
+          },
+          {
+            "label": "__gauges",
+            "offset": 0,
+            "slot": "105",
+            "type": "t_array(t_address)dyn_storage",
+            "contract": "GaugeFactoryV2_CL",
+            "src": "contracts/factories/GaugeFactoryV2_CL.sol:29"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        },
+        "namespaces": {}
+      }
+    }
+  }
+}

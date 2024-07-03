@@ -2,29 +2,33 @@ import { ethers, upgrades } from "hardhat";
 import { ZeroAddress } from "ethers";
 import hre from "hardhat";
 
-const UNISWAP_V3_FACTORY_ADDRESS = "0x7721FFcbf6af0bd43FCE74B8C450cEeBfDCe8DE3";
-const GAMMA_FEE_RECEIPIENT = "0xfbE533Ac756f65E783B00df7B860755959B51880";
+const UNISWAP_V3_FACTORY_ADDRESS = "0xC84ce331F8951f141217275B48C79AfD4186a155";
+const GAMMA_FEE_RECEIPIENT = "0x8381c90a455c162E0aCA3cBE80e7cE5D590C7703";
 
 async function main() {
+  const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
   console.log("Deploying contracts...");
 
   // BXT
-  const BXT = await ethers.deployContract("BaseXToken");
-  await BXT.waitForDeployment();
-  console.log(`BXT deployed. Address: ${BXT.target}`);
-  await verifyContract(BXT.target, []);
+  // const BXT = await ethers.deployContract("BaseXToken");
+  // await BXT.waitForDeployment();
+  // console.log(`BXT deployed. Address: ${BXT.target}`);
+  // await verifyContract(BXT.target, []);
+  const FSX_ADDRESS = "0xF55a3cE00387A3BCD7f0FF74Bfdb07e445F110Ae";
 
   // veArtProxy
   const veArtProxy = await ethers.deployContract("VeArtProxyUpgradeable");
   await veArtProxy.waitForDeployment();
   await verifyContract(veArtProxy.target, []);
+  await sleep(30000);
 
   // veBXT / VotingEscrow
-  let input = [BXT.target, veArtProxy.target];
+  let input = [FSX_ADDRESS, veArtProxy.target];
   const veBXT = await ethers.deployContract("VotingEscrow", input);
   await veBXT.waitForDeployment();
   console.log(`veBXT deployed. Address: ${veBXT.target}`);
   await verifyContract(veBXT.target, input);
+  await sleep(30000);
 
   // RewardsDistributor
   input = [veBXT.target];
@@ -37,6 +41,7 @@ async function main() {
     `rewardsDistributor deployed. Address: ${rewardsDistributor.target}`
   );
   await verifyContract(rewardsDistributor.target, input);
+  await sleep(30000);
 
   // PERMISSIONS REGISTRY
   const permissionsRegistry = await ethers.deployContract(
@@ -47,6 +52,7 @@ async function main() {
     `Permissions Registry deployed. Address: ${permissionsRegistry.target}`
   );
   await verifyContract(permissionsRegistry.target, []);
+  await sleep(30000);
 
   // BRIBE FACTORY
   input = [
@@ -67,6 +73,7 @@ async function main() {
   await bribeFactoryV3.waitForDeployment();
   console.log(`BribeFactoryV3 deployed. Address: ${bribeFactoryV3.target}`);
   await verifyContract(bribeFactoryV3.target, []);
+  await sleep(30000);
 
   // GAUGE FACTORY V2 CL
   input = [permissionsRegistry.target, GAMMA_FEE_RECEIPIENT];
@@ -83,6 +90,7 @@ async function main() {
   await gaugeFactoryV2CL.waitForDeployment();
   console.log(`GaugeFactoryV2CL deployed. Address: ${gaugeFactoryV2CL.target}`);
   await verifyContract(gaugeFactoryV2CL.target, []);
+  await sleep(30000);
 
   // Voter V3
   input = [
@@ -98,6 +106,7 @@ async function main() {
   await voterV3.waitForDeployment();
   console.log(`VoterV3 deployed. Address: ${voterV3.target}`);
   await verifyContract(voterV3.target, []);
+  await sleep(30000);
 
   // Minter
   const MinterContract = await ethers.getContractFactory("MinterUpgradeable");
@@ -112,9 +121,10 @@ async function main() {
   await minter.waitForDeployment();
   console.log(`Minter deployed. Address: ${minter.target}`);
   await verifyContract(minter.target, []);
+  await sleep(30000);
 
   console.log("Print contract addresses ==============>");
-  console.log(`let BXTAddress = "${BXT.target}";`);
+  // console.log(`let BXTAddress = "${BXT.target}";`);
   console.log(`let veArtProxyAddress = "${veArtProxy.target}";`);
   console.log(`let veBXTAddress = "${veBXT.target}";`);
   console.log(
