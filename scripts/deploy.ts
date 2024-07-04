@@ -20,7 +20,6 @@ async function main() {
   const veArtProxy = await ethers.deployContract("VeArtProxyUpgradeable");
   await veArtProxy.waitForDeployment();
   await verifyContract(veArtProxy.target, []);
-  await sleep(30000);
 
   // veBXT / VotingEscrow
   let input = [FSX_ADDRESS, veArtProxy.target];
@@ -28,7 +27,6 @@ async function main() {
   await veBXT.waitForDeployment();
   console.log(`veBXT deployed. Address: ${veBXT.target}`);
   await verifyContract(veBXT.target, input);
-  await sleep(30000);
 
   // RewardsDistributor
   input = [veBXT.target];
@@ -41,7 +39,6 @@ async function main() {
     `rewardsDistributor deployed. Address: ${rewardsDistributor.target}`
   );
   await verifyContract(rewardsDistributor.target, input);
-  await sleep(30000);
 
   // PERMISSIONS REGISTRY
   const permissionsRegistry = await ethers.deployContract(
@@ -52,7 +49,6 @@ async function main() {
     `Permissions Registry deployed. Address: ${permissionsRegistry.target}`
   );
   await verifyContract(permissionsRegistry.target, []);
-  await sleep(30000);
 
   // BRIBE FACTORY
   input = [
@@ -72,7 +68,7 @@ async function main() {
   );
   await bribeFactoryV3.waitForDeployment();
   console.log(`BribeFactoryV3 deployed. Address: ${bribeFactoryV3.target}`);
-  await verifyContract(bribeFactoryV3.target, []);
+  await verifyContract(bribeFactoryV3.target, input);
   await sleep(30000);
 
   // GAUGE FACTORY V2 CL
@@ -89,7 +85,7 @@ async function main() {
   );
   await gaugeFactoryV2CL.waitForDeployment();
   console.log(`GaugeFactoryV2CL deployed. Address: ${gaugeFactoryV2CL.target}`);
-  await verifyContract(gaugeFactoryV2CL.target, []);
+  await verifyContract(gaugeFactoryV2CL.target, input);
   await sleep(30000);
 
   // Voter V3
@@ -121,22 +117,21 @@ async function main() {
   await minter.waitForDeployment();
   console.log(`Minter deployed. Address: ${minter.target}`);
   await verifyContract(minter.target, []);
-  await sleep(30000);
 
   console.log("Print contract addresses ==============>");
   // console.log(`let BXTAddress = "${BXT.target}";`);
-  console.log(`let veArtProxyAddress = "${veArtProxy.target}";`);
-  console.log(`let veBXTAddress = "${veBXT.target}";`);
+  console.log(`veArtProxyAddress = ${veArtProxy.target};`);
+  console.log(`veBXTAddress = ${veBXT.target};`);
   console.log(
-    `let rewardsDistributorAddress = "${rewardsDistributor.target}";`
+    `rewardsDistributorAddress = ${rewardsDistributor.target};`
   );
   console.log(
-    `let permissionsRegistryAddress = "${permissionsRegistry.target}";`
+    `permissionsRegistryAddress = ${permissionsRegistry.target};`
   );
-  console.log(`let bribeFactoryV3Address = "${bribeFactoryV3.target}";`);
-  console.log(`let gaugeFactoryV2CLAddress = "${gaugeFactoryV2CL.target}";`);
-  console.log(`let voteV3Address = "${voterV3.target}";`);
-  console.log(`let minterAddress = "${minter.target}";`);
+  console.log(`bribeFactoryV3Address = ${bribeFactoryV3.target};`);
+  console.log(`gaugeFactoryV2CLAddress = ${gaugeFactoryV2CL.target};`);
+  console.log(`voteV3Address = ${voterV3.target};`);
+  console.log(`minterAddress = ${minter.target};`);
 }
 
 async function verifyContract(contractAddress: any, input: any[]) {

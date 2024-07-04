@@ -6,7 +6,7 @@ import "./interfaces/IBaseXToken.sol";
 contract BaseXToken is IBaseXToken {
 
     string public constant name = "BaseX Token";
-    string public constant symbol = "BXT";
+    string public constant symbol = "FSX";
     uint8 public constant decimals = 18;
     uint public totalSupply = 0;
 

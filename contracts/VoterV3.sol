@@ -27,7 +27,7 @@ contract VoterV3 is IVoter, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     address public _ve;                                         // the ve token that governs these contracts
     address public factory;                                     // classic stable and volatile Pair Factory
     address[] public factories;                                 // Array with all the pair factories
-    address internal base;                                      // $BXT token
+    address internal base;                                      // $FSX token
     address public gaugefactory;                                // gauge factory
     address[] public gaugeFactories;                            // array with all the gauge factories
     address public bribefactory;                                // bribe factory (internal and external)

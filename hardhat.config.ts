@@ -108,7 +108,7 @@ const config = {
         settings: {
           optimizer: {
             enabled: true,
-            runs: 999,
+            runs: 200,
           },
         },
       },
@@ -117,7 +117,7 @@ const config = {
         settings: {
           optimizer: {
             enabled: true,
-            runs: 999,
+            runs: 200,
           },
         },
       }
