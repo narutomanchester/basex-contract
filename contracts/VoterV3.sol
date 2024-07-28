@@ -7,13 +7,14 @@ import './interfaces/IBribeFactory.sol';
 import './interfaces/IGauge.sol';
 import './interfaces/IGaugeFactoryV2.sol';
 import './interfaces/IMinter.sol';
-// basex.fi: removed pair factory
+// fusionx.fi: removed pair factory
 // import './interfaces/IPairFactory.sol';
 import './interfaces/IVoter.sol';
 import './interfaces/IERC20.sol';
 import './interfaces/IUniswapV3Pool.sol';
 import './interfaces/IHypervisor.sol';
 import './interfaces/IVotingEscrow.sol';
+import './interfaces/IPairInfo.sol';
 import './interfaces/IPermissionsRegistry.sol';
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
@@ -346,12 +347,16 @@ contract VoterV3 is IVoter, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     }
 
     function _reset(uint _tokenId) internal {
+        
         address[] storage _poolVote = poolVote[_tokenId];
+        
         uint _poolVoteCnt = _poolVote.length;
         uint256 _totalWeight = 0;
+        
         uint256 _time = _epochTimestamp();
+        
         uint lastVoteTimestamp = lastVoted[_tokenId];
-
+        
         for (uint i = 0; i < _poolVoteCnt; i ++) {
             address _pool = _poolVote[i];
             uint256 _votes = votes[_tokenId][_pool];
@@ -379,6 +384,7 @@ contract VoterV3 is IVoter, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         totWeightsPerEpoch[_time] -= _totalWeight;
         usedWeights[_tokenId] = 0;
         delete poolVote[_tokenId];
+        
     }
 
     /// @notice Recast the saved votes of a given TokenID
@@ -404,21 +410,23 @@ contract VoterV3 is IVoter, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     /// @param  _weights    array of weights for each LPs   (eg.: [10               , 90            , 45             ,...])  
     function vote(uint _tokenId, address[] calldata _poolVote, uint256[] calldata _weights) external nonReentrant {
         _voteDelay(_tokenId);
-        require(IVotingEscrow(_ve).isApprovedOrOwner(msg.sender, _tokenId));
+        require(IVotingEscrow(_ve).isApprovedOrOwner(msg.sender, _tokenId), 'ERROR approved');
         require(_poolVote.length == _weights.length);
         _vote(_tokenId, _poolVote, _weights);
         lastVoted[_tokenId] = _epochTimestamp() + 1;
     }
     
     function _vote(uint _tokenId, address[] memory _poolVote, uint256[] memory _weights) internal {
+        
         _reset(_tokenId);
+        
         uint _poolCnt = _poolVote.length;
         uint256 _weight = IVotingEscrow(_ve).balanceOfNFT(_tokenId);
         uint256 _totalVoteWeight = 0;
         uint256 _totalWeight = 0;
         uint256 _usedWeight = 0;
         uint256 _time = _epochTimestamp();
-
+        
         for (uint i = 0; i < _poolCnt; i++) {
             _totalVoteWeight += _weights[i];
         }
@@ -445,9 +453,12 @@ contract VoterV3 is IVoter, OwnableUpgradeable, ReentrancyGuardUpgradeable {
                 emit Voted(msg.sender, _tokenId, _poolWeight);
             }
         }
+        
         if (_usedWeight > 0) IVotingEscrow(_ve).voting(_tokenId);
+        
         totWeightsPerEpoch[_time] += _totalWeight;
         usedWeights[_tokenId] = (_usedWeight);
+        
     }
 
     /// @notice claim LP gauge rewards
@@ -488,7 +499,7 @@ contract VoterV3 is IVoter, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     }    
 
     /// @notice attach a veNFT tokenID to a gauge. This is used for boost farming 
-    /// @dev boost not available in BaseX. Keep the function in case we need it for future updates. 
+    /// @dev boost not available in FusionX. Keep the function in case we need it for future updates. 
     function attachTokenToGauge(uint tokenId, address account) external {
         require(isGauge[msg.sender]);
         require(isAlive[msg.sender]); // killed gauges cannot attach tokens to themselves
@@ -498,7 +509,7 @@ contract VoterV3 is IVoter, OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
     
     /// @notice detach a veNFT tokenID to a gauge. This is used for boost farming 
-    /// @dev boost not available in BaseX. Keep the function in case we need it for future updates. 
+    /// @dev boost not available in FusionX. Keep the function in case we need it for future updates. 
     function detachTokenFromGauge(uint tokenId, address account) external {
         require(isGauge[msg.sender]);
         if (tokenId > 0) IVotingEscrow(_ve).detach(tokenId);
@@ -548,7 +559,7 @@ contract VoterV3 is IVoter, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     function _createGauge(address _pool, uint256 _gaugeType) internal returns (address _gauge, address _internal_bribe, address _external_bribe) {
         require(_gaugeType < factories.length, "gaugetype");
         require(gauges[_pool] == address(0x0), "!exists");
-        // basex.fi: remove isPair
+        // fusionx.fi: remove isPair
         // bool isPair;
         address _factory = factories[_gaugeType];
         address _gaugeFactory = gaugeFactories[_gaugeType];
@@ -558,11 +569,11 @@ contract VoterV3 is IVoter, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         // to get pool
         address tokenA = address(0);
         address tokenB = address(0);
-        IUniswapV3Pool uniswapV3Pool = IHypervisor(_pool).pool();
-        (tokenA) = uniswapV3Pool.token0();
-        (tokenB) = uniswapV3Pool.token1();
+        (tokenA) = IPairInfo(_pool).token0();
+        (tokenB) = IPairInfo(_pool).token1();
+        // require(tokenB == tokenA, "!tokenA B");
         
-        // basex.fi: removed pairFactory and isPair
+        // fusionx.fi: removed pairFactory and isPair
         // for future implementation add isPair() in factory
         // if(_gaugeType == 0){
         //     isPair = IPairFactory(_factory).isPair(_pool);
@@ -577,26 +588,29 @@ contract VoterV3 is IVoter, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         //     //isPair = false;
         // }
 
-        // gov can create for any pool, even non-BaseX pairs
+        // gov can create for any pool, even non-FusionX pairs
+
+
         if (!IPermissionsRegistry(permissionRegistry).hasRole("GOVERNANCE",msg.sender)) { 
             // require(isPair, "!_pool");
             require(isWhitelisted[tokenA] && isWhitelisted[tokenB], "!whitelisted");
             require(tokenA != address(0) && tokenB != address(0), "!pair.tokens");
         }
-
         // create internal and external bribe
-        address _owner = IPermissionsRegistry(permissionRegistry).baseXTeamMultisig();
-        string memory _type =  string.concat("BaseX LP Fees: ", IERC20(_pool).symbol() );
+        address _owner = IPermissionsRegistry(permissionRegistry).fusionXTeamMultisig();
+        string memory _type =  "FusionX LP Fees";
+        // string.concat("FusionX LP Fees: ", IERC20(_pool).symbol() );
         _internal_bribe = IBribeFactory(bribefactory).createBribe(_owner, tokenA, tokenB, _type);
-
-        _type = string.concat("BaseX Bribes: ", IERC20(_pool).symbol() );
+        // _type = string.concat("FusionX Bribes: ", IERC20(_pool).symbol() );
+        _type =  "FusionX Bribes";
         _external_bribe = IBribeFactory(bribefactory).createBribe(_owner, tokenA, tokenB, _type);
-
+        
         // create gauge
-        // basex.fi: remove isPari
+        // fusionx.fi: remove isPari
         // _gauge = IGaugeFactory(_gaugeFactory).createGaugeV2(base, _ve, _pool, address(this), _internal_bribe, _external_bribe, isPair);
+        
         _gauge = IGaugeFactory(_gaugeFactory).createGaugeV2(base, _ve, _pool, address(this), _internal_bribe, _external_bribe);
-     
+        // require(tokenB == tokenA, "!tokenA B 555");
         // approve spending for $the
         IERC20(base).approve(_gauge, type(uint).max);
 

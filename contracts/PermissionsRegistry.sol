@@ -3,16 +3,16 @@ pragma solidity ^0.8.11;
 
 
 /*
-    This contract handles the accesses to the various BaseX contracts.
+    This contract handles the accesses to the various FusionX contracts.
 */
 
 contract PermissionsRegistry {
 
     /// @notice Control this contract 
-    address public baseXMultisig;
+    address public fusionXMultisig;
 
     /// @notice Control this contract 
-    address public baseXTeamMultisig;
+    address public fusionXTeamMultisig;
 
     /// @notice Control emergency functions (set to multisig)
     address public emergencyCouncil;
@@ -29,8 +29,8 @@ contract PermissionsRegistry {
 
 
     constructor() {
-        baseXTeamMultisig = msg.sender;
-        baseXMultisig = msg.sender;
+        fusionXTeamMultisig = msg.sender;
+        fusionXMultisig = msg.sender;
         emergencyCouncil = msg.sender;
 
 
@@ -54,8 +54,8 @@ contract PermissionsRegistry {
 
     }
 
-    modifier onlyBaseXMultisig() {
-        require(msg.sender == baseXMultisig);
+    modifier onlyFusionXMultisig() {
+        require(msg.sender == fusionXMultisig);
         _;
     }
 
@@ -67,7 +67,7 @@ contract PermissionsRegistry {
 
     /// @notice add a new role
     /// @param  role    new role's string (eg role = "GAUGE_ADMIN")
-    function addRole(string memory role) external onlyBaseXMultisig {
+    function addRole(string memory role) external onlyFusionXMultisig {
         bytes memory _role = bytes(role);
         require(!_checkRole[_role], 'is a role');
         _checkRole[_role] = true;
@@ -76,7 +76,7 @@ contract PermissionsRegistry {
 
     /// @notice Remove a role
     /// @dev    set last one to i_th position then .pop()
-    function removeRole(string memory role) external onlyBaseXMultisig {
+    function removeRole(string memory role) external onlyFusionXMultisig {
         bytes memory _role = bytes(role);
         require(_checkRole[_role], 'not a role');
 
@@ -93,7 +93,7 @@ contract PermissionsRegistry {
 
     
     /// @notice Set a role for an address
-    function setRoleFor(address c, string memory role) external onlyBaseXMultisig {
+    function setRoleFor(address c, string memory role) external onlyFusionXMultisig {
         bytes memory _role = bytes(role);
         require(_checkRole[_role], 'not a role');
         require(!hasRole[_role][c], 'assigned');
@@ -107,7 +107,7 @@ contract PermissionsRegistry {
 
     
     /// @notice remove a role from an address
-    function removeRoleFrom(address c, string memory role) external onlyBaseXMultisig {
+    function removeRoleFrom(address c, string memory role) external onlyFusionXMultisig {
         bytes memory _role = bytes(role);
         require(_checkRole[_role], 'not a role');
         require(hasRole[_role][c], 'not assigned');
@@ -201,29 +201,29 @@ contract PermissionsRegistry {
     /// @notice set emergency counsil
     /// @param _new new address    
     function setEmergencyCouncil(address _new) external {
-        require(msg.sender == emergencyCouncil || msg.sender == baseXMultisig);
+        require(msg.sender == emergencyCouncil || msg.sender == fusionXMultisig);
         require(_new != address(0));
         require(_new != emergencyCouncil);
         emergencyCouncil = _new;
     }
 
 
-    /// @notice set BaseX team multisig
+    /// @notice set FusionX team multisig
     /// @param _new new address    
-    function setBaseXTeamMultisig(address _new) external {
-        require(msg.sender == baseXTeamMultisig);
+    function setFusionXTeamMultisig(address _new) external {
+        require(msg.sender == fusionXTeamMultisig);
         require(_new != address(0));
-        require(_new != baseXTeamMultisig);
-        baseXTeamMultisig = _new;
+        require(_new != fusionXTeamMultisig);
+        fusionXTeamMultisig = _new;
     }
 
-    /// @notice set BaseX multisig
+    /// @notice set FusionX multisig
     /// @param _new new address    
-    function setBaseXMultisig(address _new) external {
-        require(msg.sender == baseXMultisig);
+    function setFusionXMultisig(address _new) external {
+        require(msg.sender == fusionXMultisig);
         require(_new != address(0));
-        require(_new != baseXMultisig);
-        baseXMultisig = _new;
+        require(_new != fusionXMultisig);
+        fusionXMultisig = _new;
     }
     
 

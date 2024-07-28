@@ -43,7 +43,7 @@ contract GaugeFactoryV2_CL is IGaugeFactory, OwnableUpgradeable {
         return __gauges.length;
     }
 
-    // basex.fi: removed isPair
+    // fusionx.fi: removed isPair
     // function createGaugeV2(address _rewardToken,address _ve,address _token,address _distribution, address _internal_bribe, address _external_bribe, bool /*_isPair*/) external returns (address) {
     function createGaugeV2(address _rewardToken,address _ve,address _token,address _distribution, address _internal_bribe, address _external_bribe) external returns (address) {
     

@@ -13,7 +13,7 @@ import './interfaces/IVoter.sol';
 import './interfaces/IPermissionsRegistry.sol';
 import "./libraries/Math.sol";
 
-// basex.fi: removed pair factory
+// fusionx.fi: removed pair factory
 
 // interface IPairFactory{
 //     function MAX_REFERRAL_FEE() external view returns(uint);
@@ -47,7 +47,7 @@ contract CLFeesVault {
     address public gammaRecipient;
     // address public dibs;
     // address public theNftStakingConverter;
-    // basex.fi removed pair factory
+    // fusionx.fi removed pair factory
     // address public pairFactoryClassic = address(0xAFD89d21BdB66d00817d4153E055830B1c2B3970);
     IPermissionsRegistry public permissionsRegsitry;
 
@@ -68,7 +68,7 @@ contract CLFeesVault {
     /* -----------------------------------------------------------------------------
                                     EVENTS
     ----------------------------------------------------------------------------- */
-    // basex.fi: removed nft
+    // fusionx.fi: removed nft
     event Fees(uint256 totAmount0,uint256 totAmount1, address indexed token0, address indexed token1, address indexed pool, uint timestamp);
     // event Fees0(uint gamma, uint referral, uint nft, uint gauge, address indexed token);
     // event Fees1(uint gamma, uint referral, uint nft, uint gauge, address indexed token);
@@ -98,7 +98,7 @@ contract CLFeesVault {
     --------------------------------------------------------------------------------
     ----------------------------------------------------------------------------- */
 
-    // basex.fi: removed nft 
+    // fusionx.fi: removed nft 
     /// @dev    Claim Fees from the gauge. Return the fees claimed by the gauge
     function claimFees() external onlyGauge returns(uint256 gauge0, uint256 gauge1) {
         // check gauge pool using voter
@@ -146,7 +146,7 @@ contract CLFeesVault {
 
     }
 
-    // basex.fi removed nft and referral fee
+    // fusionx.fi removed nft and referral fee
     function _getFees(uint amount) internal view returns(uint gamma, uint referral, uint gauge) {   
         uint256 referralFee = 0;
         // if(activereferral) {
@@ -198,7 +198,7 @@ contract CLFeesVault {
     //     theNftStakingConverter = _theNftStaking;
     // }
 
-    // basex.fi: removed pair factory
+    // fusionx.fi: removed pair factory
     // function setPairFactory(address _pf) external onlyAdmin {
     //     require(_pf != address(0));
     //     pairFactoryClassic = _pf;
@@ -223,7 +223,7 @@ contract CLFeesVault {
     /// @notice Recover ERC20 from the contract.
     function emergencyRecoverERC20(address tokenAddress, uint256 tokenAmount) external onlyAdmin {
         require(tokenAmount <= IERC20(tokenAddress).balanceOf(address(this)));
-        IERC20(tokenAddress).safeTransfer(permissionsRegsitry.baseXTeamMultisig(), tokenAmount);
+        IERC20(tokenAddress).safeTransfer(permissionsRegsitry.fusionXTeamMultisig(), tokenAmount);
     }
 
 }

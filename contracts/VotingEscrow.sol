@@ -127,18 +127,18 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
                              METADATA STORAGE
     //////////////////////////////////////////////////////////////*/
 
-    string constant public name = "BaseX Vesting Token";
+    string constant public name = "FusionX Ve Token";
     string constant public symbol = "veFSX";
     string constant public version = "1.0.0";
     uint8 constant public decimals = 18;
 
     function setTeam(address _team) external {
-        require(msg.sender == team);
+        require(msg.sender == team, "ERROR: sender address not team address");
         team = _team;
     }
 
     function setArtProxy(address _proxy) external {
-        require(msg.sender == team);
+        require(msg.sender == team, "ERROR: sender address not team address");
         artProxy = _proxy;
     }
 
@@ -218,13 +218,13 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
     function approve(address _approved, uint _tokenId) public {
         address owner = idToOwner[_tokenId];
         // Throws if `_tokenId` is not a valid NFT
-        require(owner != address(0));
+        require(owner != address(0), "ERROR: owner need != 0x00");
         // Throws if `_approved` is the current owner
-        require(_approved != owner);
+        require(_approved != owner, "ERROR: _approved address is current owner");
         // Check requirements
         bool senderIsOwner = (idToOwner[_tokenId] == msg.sender);
         bool senderIsApprovedForAll = (ownerToOperators[owner])[msg.sender];
-        require(senderIsOwner || senderIsApprovedForAll);
+        require(senderIsOwner || senderIsApprovedForAll, "ERROR: senderIsOwner || senderIsApprovedForAll");
         // Set the approval
         idToApprovals[_tokenId] = _approved;
         emit Approval(owner, _approved, _tokenId);
@@ -283,9 +283,9 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
         uint _tokenId,
         address _sender
     ) internal {
-        require(attachments[_tokenId] == 0 && !voted[_tokenId], "attached");
+        require(attachments[_tokenId] == 0 && !voted[_tokenId], "ERROR: attached");
         // Check requirements
-        require(_isApprovedOrOwner(_sender, _tokenId));
+        require(_isApprovedOrOwner(_sender, _tokenId), "ERROR: check approve tokenId");
         // Clear approval. Throws if `_from` is not the current owner
         _clearApproval(_from, _tokenId);
         // Remove NFT. Throws if `_tokenId` is not a valid NFT
@@ -751,7 +751,7 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
     function deposit_for(uint _tokenId, uint _value) external nonreentrant {
         LockedBalance memory _locked = locked[_tokenId];
 
-        require(_value > 0); // dev: need non-zero value
+        require(_value > 0, "ERROR: deposit value need >0"); // dev: need non-zero value
         require(_locked.amount > 0, 'No existing lock found');
         require(_locked.end > block.timestamp, 'Cannot add to expired lock. Withdraw');
         _deposit_for(_tokenId, _value, 0, _locked, DepositType.DEPOSIT_FOR_TYPE);
@@ -764,7 +764,7 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
     function _create_lock(uint _value, uint _lock_duration, address _to) internal returns (uint) {
         uint unlock_time = (block.timestamp + _lock_duration) / WEEK * WEEK; // Locktime is rounded down to weeks
 
-        require(_value > 0); // dev: need non-zero value
+        require(_value > 0, "ERROR: deposit value need >0"); // dev: need non-zero value
         require(unlock_time > block.timestamp, 'Can only lock until time in the future');
         require(unlock_time <= block.timestamp + MAXTIME, 'Voting lock can be 2 years max');
 
@@ -1039,35 +1039,35 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
     mapping(uint => bool) public voted;
 
     function setVoter(address _voter) external {
-        require(msg.sender == team);
+        require(msg.sender == team, "ERROR: sender address not team address");
         voter = _voter;
     }
 
     function voting(uint _tokenId) external {
-        require(msg.sender == voter);
+        require(msg.sender == voter, 'only voter can voting in VotingEscrow');
         voted[_tokenId] = true;
     }
 
     function abstain(uint _tokenId) external {
-        require(msg.sender == voter);
+        require(msg.sender == voter, "ERROR: sender address not team address");
         voted[_tokenId] = false;
     }
 
     function attach(uint _tokenId) external {
-        require(msg.sender == voter);
+        require(msg.sender == voter, "ERROR: sender address not team address");
         attachments[_tokenId] = attachments[_tokenId] + 1;
     }
 
     function detach(uint _tokenId) external {
-        require(msg.sender == voter);
+        require(msg.sender == voter, "ERROR: sender address not team address");
         attachments[_tokenId] = attachments[_tokenId] - 1;
     }
 
     function merge(uint _from, uint _to) external {
         require(attachments[_from] == 0 && !voted[_from], "attached");
-        require(_from != _to);
-        require(_isApprovedOrOwner(msg.sender, _from));
-        require(_isApprovedOrOwner(msg.sender, _to));
+        require(_from != _to, "ERROR: _from id same with _to id");
+        require(_isApprovedOrOwner(msg.sender, _from), "ERROR: approved for _from Id");
+        require(_isApprovedOrOwner(msg.sender, _to), "ERROR: approved for _to Id");
 
         LockedBalance memory _locked0 = locked[_from];
         LockedBalance memory _locked1 = locked[_to];
@@ -1090,14 +1090,14 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
         
         // check permission and vote
         require(attachments[_tokenId] == 0 && !voted[_tokenId], "attached");
-        require(_isApprovedOrOwner(msg.sender, _tokenId));
+        require(_isApprovedOrOwner(msg.sender, _tokenId), "ERROR: approved for tokenId");
 
         // save old data and totalWeight
         address _to = idToOwner[_tokenId];
         LockedBalance memory _locked = locked[_tokenId];
         uint end = _locked.end;
         uint value = uint(int256(_locked.amount));
-        require(value > 0); // dev: need non-zero value
+        require(value > 0, "ERROR: value need > 0"); // dev: need non-zero value
         
         // reset supply, _deposit_for increase it
         supply = supply - value;
@@ -1391,8 +1391,8 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
         bytes32 r,
         bytes32 s
     ) public {
-        require(delegatee != msg.sender);
-        require(delegatee != address(0));
+        require(delegatee != msg.sender, "ERROR: delegatee need to same with sender address");
+        require(delegatee != address(0), "ERROR: delegatee = 0x00");
         
         bytes32 domainSeparator = keccak256(
             abi.encode(

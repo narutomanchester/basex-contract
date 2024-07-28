@@ -9,7 +9,7 @@ import '../interfaces/IGaugeFactoryV2.sol';
 import '../interfaces/IERC20.sol';
 import '../interfaces/IMinter.sol';
 import '../interfaces/IUniswapV3Factory.sol';
-// basex.fi: removed pair and pair factory
+// fusionx.fi: removed pair and pair factory
 // import './interfaces/IPair.sol';
 // import './interfaces/IPairFactory.sol';
 import '../interfaces/IVoter.sol';

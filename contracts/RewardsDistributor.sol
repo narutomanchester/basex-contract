@@ -13,7 +13,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 /*
 
 @title Curve Fee Distribution modified for ve(3,3) emissions
-@author Thena Finance, Prometheus, BaseX.fi
+@author Thena Finance, Prometheus, FusionX.fi
 @license MIT
 
 */

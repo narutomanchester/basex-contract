@@ -8,7 +8,7 @@ import '../interfaces/IGaugeAPI.sol';
 import '../interfaces/IGaugeFactoryV2.sol';
 import '../interfaces/IMinter.sol';
 import '../interfaces/IUniswapV3Factory.sol';
-// basex.fi: removed pair and pair factory
+// fusionx.fi: removed pair and pair factory
 // import '../interfaces/IPair.sol';
 // import '../interfaces/IPairInfo.sol';
 // import '../interfaces/IPairFactory.sol';
@@ -21,7 +21,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 import "hardhat/console.sol";
 
-// basex.fi: removed Algebra
+// fusionx.fi: removed Algebra
 // interface IAlgebraFactory{
 //     function poolByPair(address, address) external view returns(address);
 // }
@@ -91,7 +91,7 @@ contract PairAPI is Initializable {
 
 
     IUniswapV3Factory public pairFactory;
-    // basex.fi: remove algebraFactory
+    // fusionx.fi: remove algebraFactory
     // IAlgebraFactory public algebraFactory;
     IVoter public voter;
 
@@ -115,13 +115,13 @@ contract PairAPI is Initializable {
         pairFactory = IUniswapV3Factory(voter.factory());
         underlyingToken = IVotingEscrow(voter._ve()).token();
 
-        // basex.fi: remove algebraFactory
+        // fusionx.fi: remove algebraFactory
         // algebraFactory = IAlgebraFactory(address(0x306F06C147f064A010530292A1EB6737c3e378e4));
         
     }
 
 
-    // basex.fi: remove getAllPiar
+    // fusionx.fi: remove getAllPiar
     // valid only for sAMM and vAMM
     // function getAllPair(address _user, uint _amounts, uint _offset) external view returns(pairInfo[] memory Pairs){
 
@@ -150,7 +150,7 @@ contract PairAPI is Initializable {
         return _pairAddressToInfo(_pair, _account);
     }
 
-    // basex.fi: we only have v3 pool
+    // fusionx.fi: we only have v3 pool
     function _pairAddressToInfo(address _pair, address _account) internal view returns(pairInfo memory _pairInfo) {
 
         // IPair ipair = IPair(_pair); 
@@ -322,7 +322,7 @@ contract PairAPI is Initializable {
         voter = IVoter(_voter);
         
         // update variable depending on voter
-        // basex.fi: change IPairFactory to IUniswapV3Factory
+        // fusionx.fi: change IPairFactory to IUniswapV3Factory
         pairFactory = IUniswapV3Factory(voter.factory());
         underlyingToken = IVotingEscrow(voter._ve()).token();
 

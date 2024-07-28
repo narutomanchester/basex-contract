@@ -46,7 +46,7 @@ contract BribeFactoryV3 is OwnableUpgradeable {
 
 
     /// @notice create a bribe contract
-    /// @dev    _owner must be baseXTeamMultisig
+    /// @dev    _owner must be fusionXTeamMultisig
     function createBribe(address _owner,address _token0,address _token1, string memory _type) external returns (address) {
         require(msg.sender == voter || msg.sender == owner(), 'only voter');
 
