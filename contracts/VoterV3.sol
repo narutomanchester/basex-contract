@@ -124,8 +124,8 @@ contract VoterV3 is IVoter, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     /// @param  _tokens array of tokens to whitelist
     /// @param  _minter the minter of $the
     function _init(address[] memory _tokens, address _permissionsRegistry, address _minter) external {
-        require(msg.sender == minter || IPermissionsRegistry(permissionRegistry).hasRole("VOTER_ADMIN",msg.sender));
-        require(!initflag);
+        require(msg.sender == minter || IPermissionsRegistry(permissionRegistry).hasRole("VOTER_ADMIN",msg.sender), 'ERR: VOTER_ADMIN or minter address');
+        require(!initflag, 'ERR: alrd init');
         for (uint i = 0; i < _tokens.length; i++) {
             _whitelist(_tokens[i]);
         }
