@@ -15,93 +15,93 @@ async function main() {
   // console.log(`BXT deployed. Address: ${BXT.address}`);
   // await verifyContract(BXT.address, []);
   const FSX_ADDRESS = "0xF55a3cE00387A3BCD7f0FF74Bfdb07e445F110Ae";
-  const veArtProxy_ADDRESS = "0x83b1D50369D8C4dE4B78e60d705A66b1A94c96b7";
-  const veBXT_ADDRESS = "0xC34a168467641264F18Cf0Ea1D132AB4E4C95CEe";
-  const PermissionsRegistry_ADDRESS = "0x32C307651d3F50adeD6b59E00e5e0Fbba68F8C7C";
-  const rewardsDistributor_ADDRESS = "0x89711da2789a940c864e33EcD7EB299944893aa4";
-  const bribeFactoryV3_ADDRESS = "0x05e5226fa79f561dFe957AD18d7c1648A12a2866";
-  const gaugeFactoryV2CL_ADDRESS = "0x3a757209a89BECA685C56615c72E1B716c525E90";
+  // const veArtProxy_ADDRESS = "0x83b1D50369D8C4dE4B78e60d705A66b1A94c96b7";
+  // const veBXT_ADDRESS = "0xC34a168467641264F18Cf0Ea1D132AB4E4C95CEe";
+  // const PermissionsRegistry_ADDRESS = "0x32C307651d3F50adeD6b59E00e5e0Fbba68F8C7C";
+  // const rewardsDistributor_ADDRESS = "0x89711da2789a940c864e33EcD7EB299944893aa4";
+  // const bribeFactoryV3_ADDRESS = "0x05e5226fa79f561dFe957AD18d7c1648A12a2866";
+  // const gaugeFactoryV2CL_ADDRESS = "0x3a757209a89BECA685C56615c72E1B716c525E90";
 
   // veArtProxy
-  // const veArtProxy = await ethers.deployContract("VeArtProxyUpgradeable");
-  // await veArtProxy.deployed();
-  // await verifyContract(veArtProxy_ADDRESS, []);
+  const veArtProxy = await ethers.deployContract("VeArtProxyUpgradeable");
+  await veArtProxy.deployed();
+  await verifyContract(veArtProxy.address, []);
 
   // veBXT / VotingEscrow
-  // let input = [FSX_ADDRESS, veArtProxy_ADDRESS];
-  // const veBXT = await ethers.deployContract("VotingEscrow", input);
-  // await veBXT.deployed();
-  // console.log(`veBXT deployed. Address: ${veBXT_ADDRESS}`);
-  // await verifyContract(veBXT_ADDRESS, input);
+  let input = [FSX_ADDRESS, veArtProxy.address];
+  const veBXT = await ethers.deployContract("VotingEscrow", input);
+  await veBXT.deployed();
+  console.log(`veBXT deployed. Address: ${veBXT.address}`);
+  await verifyContract(veBXT.address, input);
 
   // RewardsDistributor
-  // let input = [veBXT_ADDRESS];
-  // const rewardsDistributor = await ethers.deployContract(
-  //   "RewardsDistributor",
-  //   input
-  // );
-  // await rewardsDistributor.deployed();
-  // console.log(
-  //   `rewardsDistributor deployed. Address: ${rewardsDistributor_ADDRESS}`
-  // );
-  // await verifyContract(rewardsDistributor_ADDRESS, input);
+  input = [veBXT.address];
+  const rewardsDistributor = await ethers.deployContract(
+    "RewardsDistributor",
+    input
+  );
+  await rewardsDistributor.deployed();
+  console.log(
+    `rewardsDistributor deployed. Address: ${rewardsDistributor.address}`
+  );
+  await verifyContract(rewardsDistributor.address, input);
 
   // PERMISSIONS REGISTRY
-  // const permissionsRegistry = await ethers.deployContract(
-  //   "PermissionsRegistry"
-  // );
-  // await permissionsRegistry.deployed();
-  // console.log(
-  //   `Permissions Registry deployed. Address: ${PermissionsRegistry_ADDRESS}`
-  // );
-  // await verifyContract(PermissionsRegistry_ADDRESS, []);
+  const permissionsRegistry = await ethers.deployContract(
+    "PermissionsRegistry"
+  );
+  await permissionsRegistry.deployed();
+  console.log(
+    `Permissions Registry deployed. Address: ${permissionsRegistry.address}`
+  );
+  await verifyContract(permissionsRegistry.address, []);
 
   // BRIBE FACTORY
-  // let input = [
-  //   "0x0000000000000000000000000000000000000000",
-  //   PermissionsRegistry_ADDRESS,
-  //   [], // default reward tokens //TODO
-  // ];
-  // const bribeFactoryV3Contract = await ethers.getContractFactory(
-  //   "BribeFactoryV3"
-  // );
-  // const bribeFactoryV3 = await upgrades.deployProxy(
-  //   bribeFactoryV3Contract,
-  //   input,
-  //   {
-  //     initializer: "initialize",
-  //   }
-  // );
-  // // await bribeFactoryV3.waitForDeployment();
-  // let txDeployed = await bribeFactoryV3.deployed();
-  // console.log(`BribeFactoryV3 deployed. Address: ${bribeFactoryV3.address}`);
-  // await verifyContract(bribeFactoryV3.address, []);
-  // await sleep(30000);
+  input = [
+    "0x0000000000000000000000000000000000000000",
+    permissionsRegistry.address,
+    [], // default reward tokens //TODO
+  ];
+  const bribeFactoryV3Contract = await ethers.getContractFactory(
+    "BribeFactoryV3"
+  );
+  const bribeFactoryV3 = await upgrades.deployProxy(
+    bribeFactoryV3Contract,
+    input,
+    {
+      initializer: "initialize",
+    }
+  );
+  // await bribeFactoryV3.waitForDeployment();
+  let txDeployed = await bribeFactoryV3.deployed();
+  console.log(`BribeFactoryV3 deployed. Address: ${bribeFactoryV3.address}`);
+  await verifyContract(bribeFactoryV3.address, []);
+  await sleep(30000);
 
   // GAUGE FACTORY V2 CL
-  // input = [PermissionsRegistry_ADDRESS, GAMMA_FEE_RECEIPIENT];
-  // const gaugeFactoryV2CLContract = await ethers.getContractFactory(
-  //   "GaugeFactoryV2_CL"
-  // );
-  // const gaugeFactoryV2CL = await upgrades.deployProxy(
-  //   gaugeFactoryV2CLContract,
-  //   input,
-  //   {
-  //     initializer: "initialize",
-  //   }
-  // );
-  // // await gaugeFactoryV2CL.waitForDeployment();
-  // await gaugeFactoryV2CL.deployed();
-  // console.log(`GaugeFactoryV2CL deployed. Address: ${gaugeFactoryV2CL.address}`);
-  // await verifyContract(gaugeFactoryV2CL.address, []);
-  // await sleep(30000);
+  input = [permissionsRegistry.address, GAMMA_FEE_RECEIPIENT];
+  const gaugeFactoryV2CLContract = await ethers.getContractFactory(
+    "GaugeFactoryV2_CL"
+  );
+  const gaugeFactoryV2CL = await upgrades.deployProxy(
+    gaugeFactoryV2CLContract,
+    input,
+    {
+      initializer: "initialize",
+    }
+  );
+  // await gaugeFactoryV2CL.waitForDeployment();
+  await gaugeFactoryV2CL.deployed();
+  console.log(`GaugeFactoryV2CL deployed. Address: ${gaugeFactoryV2CL.address}`);
+  await verifyContract(gaugeFactoryV2CL.address, []);
+  await sleep(30000);
 
   // Voter V3
-  let input = [
-    veBXT_ADDRESS,
+  input = [
+    veBXT.address,
     UNISWAP_V3_FACTORY_ADDRESS,
-    gaugeFactoryV2CL_ADDRESS,
-    bribeFactoryV3_ADDRESS,
+    gaugeFactoryV2CL.address,
+    bribeFactoryV3.address,
   ];
   const voterV3Contract = await ethers.getContractFactory("VoterV3");
   const voterV3 = await upgrades.deployProxy(voterV3Contract, input, {
@@ -117,7 +117,7 @@ async function main() {
   const MinterContract = await ethers.getContractFactory("MinterUpgradeable");
   const minter = await upgrades.deployProxy(
     MinterContract,
-    [voterV3.address, veBXT_ADDRESS, rewardsDistributor_ADDRESS],
+    [voterV3.address, veBXT.address, rewardsDistributor.address],
     {
       initializer: "initialize",
     }
@@ -130,16 +130,16 @@ async function main() {
 
   console.log("Print contract addresses ==============>");
   // console.log(`let BXTAddress = "${BXT.address}";`);
-  console.log(`veArtProxyAddress = ${veArtProxy_ADDRESS};`);
-  console.log(`veBXTAddress = ${veBXT_ADDRESS};`);
+  console.log(`veArtProxyAddress = ${veArtProxy.address};`);
+  console.log(`veBXTAddress = ${veBXT.address};`);
   console.log(
-    `rewardsDistributorAddress = ${rewardsDistributor_ADDRESS};`
+    `rewardsDistributorAddress = ${rewardsDistributor.address};`
   );
   console.log(
-    `permissionsRegistryAddress = ${PermissionsRegistry_ADDRESS};`
+    `permissionsRegistryAddress = ${permissionsRegistry.address};`
   );
-  console.log(`bribeFactoryV3Address = ${bribeFactoryV3_ADDRESS};`);
-  console.log(`gaugeFactoryV2CLAddress = ${gaugeFactoryV2CL_ADDRESS};`);
+  console.log(`bribeFactoryV3Address = ${bribeFactoryV3.address};`);
+  console.log(`gaugeFactoryV2CLAddress = ${gaugeFactoryV2CL.address};`);
   console.log(`voteV3Address = ${voterV3.address};`);
   console.log(`minterAddress = ${minter.address};`);
 }
