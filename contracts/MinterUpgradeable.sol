@@ -23,7 +23,7 @@ contract MinterUpgradeable is IMinter, OwnableUpgradeable {
     uint public teamRate;
     uint public constant MAX_TEAM_RATE = 50; // 5%
 
-    uint public constant WEEK = 86400 * 7; // allows minting once per week (reset every Thursday 00:00 UTC)
+    uint public constant WEEK = 120; // change from 7 days: 86400 * 7 -> 2 mins: 60*2 // allows minting once per week (reset every Thursday 00:00 UTC)
     uint public weekly; // represents a starting weekly emission of 2.6M FSX (FSX has 18 decimals)
     uint public active_period;
     uint public constant LOCK = 86400 * 7 * 52 * 2;
