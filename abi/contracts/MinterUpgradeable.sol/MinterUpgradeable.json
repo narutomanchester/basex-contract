@@ -5,6 +5,17 @@
     "type": "constructor"
   },
   {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "value",
+        "type": "uint256"
+      }
+    ],
+    "name": "MyError",
+    "type": "error"
+  },
+  {
     "anonymous": false,
     "inputs": [
       {

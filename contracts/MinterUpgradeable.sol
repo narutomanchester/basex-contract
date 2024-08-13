@@ -14,6 +14,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 contract MinterUpgradeable is IMinter, OwnableUpgradeable {
     
+
     bool public isFirstMint;
 
     uint public EMISSION;
@@ -53,7 +54,7 @@ contract MinterUpgradeable is IMinter, OwnableUpgradeable {
 
         teamRate = 40; // 300 bps = 3%
 
-        EMISSION = 990;
+        EMISSION = 2;
         TAIL_EMISSION = 2;
         REBASEMAX = 300;
 
@@ -64,7 +65,7 @@ contract MinterUpgradeable is IMinter, OwnableUpgradeable {
 
 
         active_period = ((block.timestamp + (2 * WEEK)) / WEEK) * WEEK;
-        weekly = 2_600_000 * 1e18; // represents a starting weekly emission of 2.6M FSX (FSX has 18 decimals)
+        weekly = 2 * 1e15; // represents a starting weekly emission of 26 FSX (FSX has 18 decimals)
         isFirstMint = true;
 
     }
@@ -154,9 +155,10 @@ contract MinterUpgradeable is IMinter, OwnableUpgradeable {
             return _weeklyMint * lockedShare / PRECISION;
         }
     }
-
+    error MyError(uint value);
     // update period can only be called once per cycle (1 week)
     function update_period() external returns (uint) {
+        
         uint _period = active_period;
         if (block.timestamp >= _period + WEEK && _initializer == address(0)) { // only trigger if new week
             _period = (block.timestamp / WEEK) * WEEK;
@@ -167,21 +169,24 @@ contract MinterUpgradeable is IMinter, OwnableUpgradeable {
             } else {
                 isFirstMint = false;
             }
-
+            
             uint _rebase = calculate_rebate(weekly);
             uint _teamEmissions = weekly * teamRate / PRECISION;
             uint _required = weekly;
 
             uint _gauge = weekly - _rebase - _teamEmissions;
 
+
             uint _balanceOf = _fsx.balanceOf(address(this));
             if (_balanceOf < _required) {
+                // require(1!=1, MyError(_required));
+                // revert MyError(_required);
                 _fsx.mint(address(this), _required - _balanceOf);
             }
-
-            require(_fsx.transfer(team, _teamEmissions));
             
-            require(_fsx.transfer(address(_rewards_distributor), _rebase));
+            require(_fsx.transfer(team, _teamEmissions), "ERR: _fsx.transfer(team, _teamEmissions)");
+            
+            require(_fsx.transfer(address(_rewards_distributor), _rebase), "ERR: fsx.transfer(address(_rewards_distributor), _rebase)");
             _rewards_distributor.checkpoint_token(); // checkpoint token balance that was just minted in rewards distributor
             _rewards_distributor.checkpoint_total_supply(); // checkpoint supply
 
