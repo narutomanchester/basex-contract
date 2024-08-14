@@ -4,7 +4,7 @@ pragma solidity 0.8.13;
 import "./libraries/Math.sol";
 import "./interfaces/IMinter.sol";
 import "./interfaces/IRewardsDistributor.sol";
-import "./interfaces/IFusionXToken.sol";
+import "./interfaces/IFusionX.sol";
 import "./interfaces/IVoter.sol";
 import "./interfaces/IVotingEscrow.sol";
 
@@ -179,8 +179,6 @@ contract MinterUpgradeable is IMinter, OwnableUpgradeable {
 
             uint _balanceOf = _fsx.balanceOf(address(this));
             if (_balanceOf < _required) {
-                // require(1!=1, MyError(_required));
-                // revert MyError(_required);
                 _fsx.mint(address(this), _required - _balanceOf);
             }
             

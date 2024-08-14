@@ -14,7 +14,10 @@ async function main() {
   // await BXT.waitForDeployment();
   // console.log(`BXT deployed. Address: ${BXT.address}`);
   // await verifyContract(BXT.address, []);
-  const FSX_ADDRESS = "0xF55a3cE00387A3BCD7f0FF74Bfdb07e445F110Ae";
+  const FSXTOKEN = await ethers.deployContract("FusionX");
+  await FSXTOKEN.deployed();
+  await verifyContract(FSXTOKEN.address, []);
+
   // const veArtProxy_ADDRESS = "0x83b1D50369D8C4dE4B78e60d705A66b1A94c96b7";
   // const veBXT_ADDRESS = "0xC34a168467641264F18Cf0Ea1D132AB4E4C95CEe";
   // const PermissionsRegistry_ADDRESS = "0x32C307651d3F50adeD6b59E00e5e0Fbba68F8C7C";
@@ -28,7 +31,7 @@ async function main() {
   await verifyContract(veArtProxy.address, []);
 
   // veBXT / VotingEscrow
-  let input = [FSX_ADDRESS, veArtProxy.address];
+  let input = [FSXTOKEN.address, veArtProxy.address];
   const veBXT = await ethers.deployContract("VotingEscrow", input);
   await veBXT.deployed();
   console.log(`veBXT deployed. Address: ${veBXT.address}`);
@@ -130,6 +133,7 @@ async function main() {
 
   console.log("Print contract addresses ==============>");
   // console.log(`let BXTAddress = "${BXT.address}";`);
+  console.log(`FSX = ${FSXTOKEN.address};`);
   console.log(`veArtProxyAddress = ${veArtProxy.address};`);
   console.log(`veBXTAddress = ${veBXT.address};`);
   console.log(
