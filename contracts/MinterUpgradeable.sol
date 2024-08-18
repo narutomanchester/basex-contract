@@ -33,7 +33,7 @@ contract MinterUpgradeable is IMinter, OwnableUpgradeable {
     address public team;
     address public pendingTeam;
     
-    IFusionXToken public _fsx;
+    IFusionX public _fsx;
     IVoter public _voter;
     IVotingEscrow public _ve;
     IRewardsDistributor public _rewards_distributor;
@@ -58,7 +58,7 @@ contract MinterUpgradeable is IMinter, OwnableUpgradeable {
         TAIL_EMISSION = 2;
         REBASEMAX = 300;
 
-        _fsx = IFusionXToken(IVotingEscrow(__ve).token());
+        _fsx = IFusionX(IVotingEscrow(__ve).token());
         _voter = IVoter(__voter);
         _ve = IVotingEscrow(__ve);
         _rewards_distributor = IRewardsDistributor(__rewards_distributor);
@@ -155,7 +155,7 @@ contract MinterUpgradeable is IMinter, OwnableUpgradeable {
             return _weeklyMint * lockedShare / PRECISION;
         }
     }
-    error MyError(uint value);
+    
     // update period can only be called once per cycle (1 week)
     function update_period() external returns (uint) {
         
@@ -182,9 +182,9 @@ contract MinterUpgradeable is IMinter, OwnableUpgradeable {
                 _fsx.mint(address(this), _required - _balanceOf);
             }
             
-            require(_fsx.transfer(team, _teamEmissions), "ERR: _fsx.transfer(team, _teamEmissions)");
+            require(_fsx.transfer(address(team), _teamEmissions), "ERR: _fsx.transfer team");
             
-            require(_fsx.transfer(address(_rewards_distributor), _rebase), "ERR: fsx.transfer(address(_rewards_distributor), _rebase)");
+            require(_fsx.transfer(address(_rewards_distributor), _rebase), "ERR: fsx.transfer _rewards_distributor");
             _rewards_distributor.checkpoint_token(); // checkpoint token balance that was just minted in rewards distributor
             _rewards_distributor.checkpoint_total_supply(); // checkpoint supply
 

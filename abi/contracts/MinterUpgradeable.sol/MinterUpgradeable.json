@@ -5,17 +5,6 @@
     "type": "constructor"
   },
   {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "value",
-        "type": "uint256"
-      }
-    ],
-    "name": "MyError",
-    "type": "error"
-  },
-  {
     "anonymous": false,
     "inputs": [
       {
@@ -174,7 +163,7 @@
     "name": "_fsx",
     "outputs": [
       {
-        "internalType": "contract IFusionXToken",
+        "internalType": "contract IFusionX",
         "name": "",
         "type": "address"
       }
