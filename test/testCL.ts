@@ -77,38 +77,38 @@ describe("FusionX - Deployment Section", function () {
     // await FSX.deployed();
     let txDeployed = await FSX.deployed();
 
-    console.log(`FSX deployed. Address: ${FSX.target}`);
+    console.log(`FSX deployed. Address: ${FSX.address}`);
     const veArtProxy = await ethers.deployContract("VeArtProxyUpgradeable");
     await veArtProxy.deployed();
 
     veFSX = await ethers.deployContract("VotingEscrow", [
-      FSX.target,
-      veArtProxy.target,
+      FSX.address,
+      veArtProxy.address,
     ]);
     await veFSX.deployed();
 
-    console.log(`veFSX deployed. Address: ${veFSX.target}`);
+    console.log(`veFSX deployed. Address: ${veFSX.address}`);
 
     rewardsDistributor = await ethers.deployContract("RewardsDistributor", [
-      veFSX.target,
+      veFSX.address,
     ]);
     await rewardsDistributor.deployed();
 
     console.log(
-      `rewardsDistributor deployed. Address: ${rewardsDistributor.target}`
+      `rewardsDistributor deployed. Address: ${rewardsDistributor.address}`
     );
 
     // uniProxy = await ethers.getContractAt("IUniProxy", uniProxyAddress);
 
-    hyperWETHUSDC = await ethers.getContractAt(
-      "IPairInfo",
-      WMNTUSDTAddress
-    );
+    // hyperWETHUSDC = await ethers.getContractAt(
+    //   "IPairInfo",
+    //   WMNTUSDTAddress
+    // );
 
-    // swapRouter = await ethers.getContractAt("ISwapRouter", swapRouterAddress);
+    // // swapRouter = await ethers.getContractAt("ISwapRouter", swapRouterAddress);
 
-    wmnt = await ethers.getContractAt("ERC20", wmntAddress);
-    usdc = await ethers.getContractAt("ERC20", usdcAddress);
+    // wmnt = await ethers.getContractAt("ERC20", wmntAddress);
+    // usdc = await ethers.getContractAt("ERC20", usdcAddress);
   });
 
   it("Should deploy PermissionsRegistry.sol", async function () {
@@ -179,8 +179,8 @@ describe("FusionX - Deployment Section", function () {
     bribeFactoryV3 = await upgrades.deployProxy(
       BribeFactoryV3,
       [
-        ZeroAddress,
-        permissionsRegistry.target,
+        "0x0000000000000000000000000000000000000000",
+        permissionsRegistry.address,
         [], // default reward tokens
       ],
       {
@@ -190,7 +190,7 @@ describe("FusionX - Deployment Section", function () {
 
     await bribeFactoryV3.deployed();
 
-    console.log("BribeFactoryV3:", bribeFactoryV3.target);
+    console.log("BribeFactoryV3:", bribeFactoryV3.address);
     console.log("owner:", await bribeFactoryV3.owner());
 
     expect(await bribeFactoryV3.owner()).to.equal(owner.address);
@@ -202,7 +202,7 @@ describe("FusionX - Deployment Section", function () {
     );
     gaugeFactoryV2CL = await upgrades.deployProxy(
       GaugeFactoryV2CL,
-      [permissionsRegistry.target, GAMMA_FEE_RECEIPIENT],
+      [permissionsRegistry.address, GAMMA_FEE_RECEIPIENT],
       {
         initializer: "initialize",
       }
@@ -210,7 +210,7 @@ describe("FusionX - Deployment Section", function () {
 
     await gaugeFactoryV2CL.deployed();
 
-    console.log("GaugeFactoryV2_CL:", gaugeFactoryV2CL.target);
+    console.log("GaugeFactoryV2_CL:", gaugeFactoryV2CL.address);
 
     expect(await gaugeFactoryV2CL.owner()).to.equal(owner.address);
   });
@@ -221,10 +221,10 @@ describe("FusionX - Deployment Section", function () {
     voterV3 = (await upgrades.deployProxy(
       VoterV3,
       [
-        veFSX.target,
+        veFSX.address,
         UNISWAP_V3_FACTORY_ADDRESS,
-        gaugeFactoryV2CL.target,
-        bribeFactoryV3.target,
+        gaugeFactoryV2CL.address,
+        bribeFactoryV3.address,
       ],
       {
         initializer: "initialize",
@@ -233,7 +233,7 @@ describe("FusionX - Deployment Section", function () {
 
     await voterV3.deployed();
 
-    console.log("VoterV3:", voterV3.target);
+    console.log("VoterV3:", voterV3.address);
 
     expect(await voterV3.owner()).to.equal(owner.address);
   });
@@ -243,7 +243,7 @@ describe("FusionX - Deployment Section", function () {
 
     minter = (await upgrades.deployProxy(
       Minter,
-      [voterV3.target, veFSX.target, rewardsDistributor.target],
+      [voterV3.address, veFSX.address, rewardsDistributor.address],
       {
         initializer: "initialize",
       }
@@ -251,7 +251,7 @@ describe("FusionX - Deployment Section", function () {
 
     await minter.deployed();
 
-    console.log("minter:", minter.target);
+    console.log("minter:", minter.address);
 
     expect(await minter.team()).to.equal(owner.address);
   });
@@ -264,19 +264,19 @@ describe("FusionX - Deployment Section", function () {
     const bxtBalance = await FSX.balanceOf(owner.address);
     console.log("FSX Balance:", bxtBalance);
 
-    await FSX.setMinter(minter.target);
+    await FSX.setMinter(minter.address);
     console.log(
       "FSX Minter after:",
       await FSX.minter(),
-      minter.target,
+      minter.address,
       owner.address
     );
 
     //voter
     await voterV3._init(
       [wmntAddress, usdcAddress],
-      permissionsRegistry.target,
-      minter.target
+      permissionsRegistry.address,
+      minter.address
     );
 
     //minter
@@ -286,24 +286,24 @@ describe("FusionX - Deployment Section", function () {
       BigInt(50 * 1e6 * 1e18).toString()
     );
 
-    await rewardsDistributor.setDepositor(minter.target);
+    await rewardsDistributor.setDepositor(minter.address);
 
     // set voter to veFSX
-    await veFSX.setVoter(voterV3.target);
-    expect(await veFSX.voter()).to.equal(voterV3.target);
+    await veFSX.setVoter(voterV3.address);
+    expect(await veFSX.voter()).to.equal(voterV3.address);
 
     expect(await voterV3.isWhitelisted(usdcAddress)).to.equal(true);
     expect(await voterV3.permissionRegistry()).to.equal(
-      permissionsRegistry.target
+      permissionsRegistry.address
     );
-    // await voterV3.addFactory(gaugeFactoryV2CL.target);
-    expect(await voterV3.isGaugeFactory(gaugeFactoryV2CL.target)).to.equal(
+    // await voterV3.addFactory(gaugeFactoryV2CL.address);
+    expect(await voterV3.isGaugeFactory(gaugeFactoryV2CL.address)).to.equal(
       true
     );
 
     // bribe factory
-    await bribeFactoryV3.setVoter(voterV3.target);
-    expect(await bribeFactoryV3.voter()).to.equal(voterV3.target);
+    await bribeFactoryV3.setVoter(voterV3.address);
+    expect(await bribeFactoryV3.voter()).to.equal(voterV3.address);
   });
 });
 
@@ -384,23 +384,23 @@ describe("FusionX - Gauge Section", function () {
     // deploy
     gaugeExtraRewarder = await ethers.deployContract("GaugeExtraRewarder", [
       wmntAddress,
-      gauge.target,
+      gauge.address,
     ]);
 
     await gaugeExtraRewarder.deployed();
 
-    console.log("gaugeExtraRewarder: ", gaugeExtraRewarder.target);
+    console.log("gaugeExtraRewarder: ", gaugeExtraRewarder.address);
     expect(await gaugeExtraRewarder.owner()).to.equal(owner.address);
 
     await gaugeFactoryV2CL.setGaugeRewarder(
-      [gauge.target],
-      [gaugeExtraRewarder.target]
+      [gauge.address],
+      [gaugeExtraRewarder.address]
     );
 
     const amountIn = ethers.parseEther("10000");
-    expect(await wmnt.balanceOf(gaugeExtraRewarder.target)).to.be.equal(0);
-    await wmnt.transfer(gaugeExtraRewarder.target, amountIn);
-    expect(await wmnt.balanceOf(gaugeExtraRewarder.target)).to.be.equal(
+    expect(await wmnt.balanceOf(gaugeExtraRewarder.address)).to.be.equal(0);
+    await wmnt.transfer(gaugeExtraRewarder.address, amountIn);
+    expect(await wmnt.balanceOf(gaugeExtraRewarder.address)).to.be.equal(
       amountIn
     );
 
@@ -409,7 +409,7 @@ describe("FusionX - Gauge Section", function () {
 
   it("Should deposit into the gauge", async function () {
     expect(await gauge.balanceOf(owner.address)).to.be.equal(0);
-    await hyperWETHUSDC.approve(gauge.target, lpBalanceDeposited.toString());
+    await hyperWETHUSDC.approve(gauge.address, lpBalanceDeposited.toString());
     await gauge.depositAll();
     const balance = await gauge.balanceOf(owner.address);
     expect(balance).to.be.above(0);
@@ -418,25 +418,25 @@ describe("FusionX - Gauge Section", function () {
 
   it("Should send fees to vault", async function () {
     const amountIn = ethers.parseEther("100");
-    let wmntBalance = await wmnt.balanceOf(feeVault.target);
-    let usdcBalance = await usdc.balanceOf(feeVault.target);
+    let wmntBalance = await wmnt.balanceOf(feeVault.address);
+    let usdcBalance = await usdc.balanceOf(feeVault.address);
     expect(wmntBalance).to.be.equal(0);
     expect(usdcBalance).to.be.equal(0);
-    await wmnt.transfer(feeVault.target, amountIn);
-    await usdc.transfer(feeVault.target, amountIn);
-    wmntBalance = await wmnt.balanceOf(feeVault.target);
-    usdcBalance = await usdc.balanceOf(feeVault.target);
+    await wmnt.transfer(feeVault.address, amountIn);
+    await usdc.transfer(feeVault.address, amountIn);
+    wmntBalance = await wmnt.balanceOf(feeVault.address);
+    usdcBalance = await usdc.balanceOf(feeVault.address);
     expect(wmntBalance).to.be.equal(amountIn);
     expect(usdcBalance).to.be.equal(amountIn);
-    // await wmnt.transfer(feeVault.target, amountIn);
+    // await wmnt.transfer(feeVault.address, amountIn);
 
-    console.log("FeeVault Address:", feeVault.target);
+    console.log("FeeVault Address:", feeVault.address);
     console.log("WETH Balance of FeeVault:", wmntBalance);
     console.log("USDC Balance of FeeVault:", usdcBalance);
   });
 
   it("Should claim fees from vault", async function () {
-    const intBribeAddress = intBribe.target;
+    const intBribeAddress = intBribe.address;
     let wmntBalance = await wmnt.balanceOf(intBribeAddress);
     let usdcBalance = await usdc.balanceOf(intBribeAddress);
     console.log("IntBribe address:", intBribeAddress);
@@ -449,7 +449,7 @@ describe("FusionX - Gauge Section", function () {
     );
 
     expect(wmntBalance).to.equal(0);
-    await voterV3.distributeFees([gauge.target]);
+    await voterV3.distributeFees([gauge.address]);
     wmntBalance = await wmnt.balanceOf(intBribeAddress);
     usdcBalance = await usdc.balanceOf(intBribeAddress);
     expect(wmntBalance).to.above(0);
@@ -475,9 +475,9 @@ describe("FusionX - Voter Section", function () {
 
   it("Should lock FSX to get veFSX", async function () {
     // const lockAmount = ethers.parseEther("1000");
-    // await FSX.approve(veFSX.target, lockAmount);
+    // await FSX.approve(veFSX.address, lockAmount);
 
-    // console.log("allowance:", await FSX.allowance(owner.address, veFSX.target));
+    // console.log("allowance:", await FSX.allowance(owner.address, veFSX.address));
 
     // await veFSX.create_lock(lockAmount, 2 * 7 * 86400); //create lock for 2 weeks
 
@@ -504,7 +504,7 @@ describe("FusionX - Voter Section", function () {
 
   it("Should send rewards to voter and distribute", async function () {
     const amountIn = ethers.parseEther("1000");
-    await FSX.approve(voterV3.target, amountIn);
+    await FSX.approve(voterV3.address, amountIn);
     let blockNum = await ethers.provider.getBlockNumber();
     let block = await ethers.provider.getBlock(blockNum);
     const activePeriod = await minter.active_period();
@@ -518,19 +518,19 @@ describe("FusionX - Voter Section", function () {
     console.log("checked:", await minter.check());
     await minter.update_period();
 
-    const balance = await FSX.balanceOf(voterV3.target);
+    const balance = await FSX.balanceOf(voterV3.address);
     console.log("FSX Balance of voter:", balance);
     // expect(balance).to.equal(amountIn);
 
-    console.log("FSX Balance of minter:", await FSX.balanceOf(minter.target));
+    console.log("FSX Balance of minter:", await FSX.balanceOf(minter.address));
 
     console.log("Minter of FSX", await FSX.minter());
 
-    expect(await FSX.balanceOf(gauge.target)).to.equal(0);
+    expect(await FSX.balanceOf(gauge.address)).to.equal(0);
 
     await voterV3.distributeAll();
 
-    const balanceOfGauge = await FSX.balanceOf(gauge.target);
+    const balanceOfGauge = await FSX.balanceOf(gauge.address);
     expect(balanceOfGauge).to.above(0);
 
     console.log("Gauge FSX balance after distribute all:", balanceOfGauge);
@@ -566,7 +566,7 @@ describe("Thena - Claim rewards Section", function () {
 
     const balanceBefore = await wmnt.balanceOf(owner.address);
     console.log("WETH balance before get intBribes: ", balanceBefore);
-    await intBribe["getReward(address[])"]([wmnt.target]);
+    await intBribe["getReward(address[])"]([wmnt.address]);
     const balancAfter = await wmnt.balanceOf(owner.address);
     console.log("WETH balance after get intBribes: ", balancAfter);
     expect(balancAfter).to.above(balanceBefore);
