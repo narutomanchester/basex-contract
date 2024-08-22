@@ -9,6 +9,7 @@ async function main() {
   const weth = await ethers.deployContract("MockERC20", [
     "Wrapped Ethereum",
     "WETH",
+    "1000000000000000000000000"
   ]);
 
   console.log(`WETH deployed. Address: ${weth.target}`);
@@ -21,7 +22,7 @@ async function main() {
     contract: "MockERC20",
   });
 
-  const usdc = await ethers.deployContract("MockERC20", ["USD Coin", "USDC"]);
+  const usdc = await ethers.deployContract("MockERC20", ["USD Coin", "USDC", "1000000000000000000000000"]);
 
   console.log(`USDC deployed. Address: ${usdc.target}`);
   balance = await usdc.balanceOf(owner.address);
@@ -34,6 +35,16 @@ async function main() {
   });
 }
 
+async function verifyContract(contractAddress: any, input: any[]) {
+  try {
+    await hre.run("verify:verify", {
+      address: contractAddress,
+      constructorArguments: input,
+    });
+  } catch (error) {
+    console.log(`Verify ${contractAddress} error`, error);
+  }
+}
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
 main().catch((error) => {

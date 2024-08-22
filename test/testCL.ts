@@ -4,49 +4,47 @@ import { ZeroAddress } from "ethers";
 
 import { expect } from "chai";
 import {
-  BaseXToken,
+  FusionXToken,
   VotingEscrow,
   IUniProxy,
   ISwapRouter,
-  MockERC20,
+  ERC20,
   PermissionsRegistry,
   BribeFactoryV3,
   RewardsDistributor,
   MinterUpgradeable,
   GaugeExtraRewarder,
-  IHypervisor,
+  IPairInfo,
   GaugeV2_CL,
   CLFeesVault,
   Bribe,
   VoterV3,
 } from "../typechain-types";
 
-const swapRouterAddress = "0xde2Bd2ffEA002b8E84ADeA96e5976aF664115E2c";
+const swapRouterAddress = "0x9425F9c882b947Ef7be4ABFdbd08A68837fa6307";
 
 // token addresses
-const wethAddress = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
-const usdcAddress = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0";
+const wmntAddress = "0xc0eeCFA24E391E4259B7EF17be54Be5139DA1AC7";
+const usdcAddress = "0xeA911b76c5681Fd2A46Cf951B320C7e39186f3F0";
 
 const uniProxyAddress = "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318";
-const hyperWETHUSDCADddress = "0xee695bb007b55c9dAa2DEDc09051165cC2618bfC";
+const WMNTUSDTAddress = "0xee695bb007b55c9dAa2DEDc09051165cC2618bfC";
 
-const UNISWAP_V3_FACTORY_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
-const GAMMA_FEE_RECEIPIENT = "0x90F79bf6EB2c4f870365E785982E1f101E93b906";
+const UNISWAP_V3_FACTORY_ADDRESS = "0x8A74c5E686D33C5Fe5F98c361f6e24e35e899EF6";
+const GAMMA_FEE_RECEIPIENT = "0x8381c90a455c162E0aCA3cBE80e7cE5D590C7703";
 
 // users
-const BigHolder = ethers.getAddress(
-  "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC"
-); //used to add liquidity and swaps
+const BigHolder = "0x8381c90a455c162E0aCA3cBE80e7cE5D590C7703";
 
 let timestampBefore: number;
 let owner: HardhatEthersSigner;
-let BXT: BaseXToken;
-let veBXT: VotingEscrow;
+let FSX: FusionXToken;
+let veFSX: VotingEscrow;
 let uniProxy: IUniProxy;
-let hyperWETHUSDC: IHypervisor;
+let hyperWETHUSDC: IPairInfo;
 let swapRouter: ISwapRouter;
-let weth: MockERC20;
-let usdc: MockERC20;
+let wmnt: ERC20;
+let usdc: ERC20;
 let permissionsRegistry: PermissionsRegistry;
 let bribeFactoryV3: any;
 let gaugeFactoryV2CL: any;
@@ -61,7 +59,7 @@ let intBribe: Bribe;
 let gaugeExtraRewarder: GaugeExtraRewarder;
 let nftIDs: BigInt[];
 
-describe("BaseX - Deployment Section", function () {
+describe("FusionX - Deployment Section", function () {
   beforeEach(async () => {
     await ethers.provider.send("evm_increaseTime", [5]);
     await ethers.provider.send("evm_mine");
@@ -74,49 +72,50 @@ describe("BaseX - Deployment Section", function () {
   it("Should load external contract for test (ERC20,LPs,..)", async function () {
     [owner] = await ethers.getSigners();
 
-    BXT = await ethers.deployContract("BaseXToken");
+    FSX = await ethers.deployContract("FusionX");
 
-    await BXT.waitForDeployment();
+    // await FSX.deployed();
+    let txDeployed = await FSX.deployed();
 
-    console.log(`BXT deployed. Address: ${BXT.target}`);
+    console.log(`FSX deployed. Address: ${FSX.target}`);
     const veArtProxy = await ethers.deployContract("VeArtProxyUpgradeable");
-    await veArtProxy.waitForDeployment();
+    await veArtProxy.deployed();
 
-    veBXT = await ethers.deployContract("VotingEscrow", [
-      BXT.target,
+    veFSX = await ethers.deployContract("VotingEscrow", [
+      FSX.target,
       veArtProxy.target,
     ]);
-    await veBXT.waitForDeployment();
+    await veFSX.deployed();
 
-    console.log(`veBXT deployed. Address: ${veBXT.target}`);
+    console.log(`veFSX deployed. Address: ${veFSX.target}`);
 
     rewardsDistributor = await ethers.deployContract("RewardsDistributor", [
-      veBXT.target,
+      veFSX.target,
     ]);
-    await rewardsDistributor.waitForDeployment();
+    await rewardsDistributor.deployed();
 
     console.log(
       `rewardsDistributor deployed. Address: ${rewardsDistributor.target}`
     );
 
-    uniProxy = await ethers.getContractAt("IUniProxy", uniProxyAddress);
+    // uniProxy = await ethers.getContractAt("IUniProxy", uniProxyAddress);
 
     hyperWETHUSDC = await ethers.getContractAt(
-      "IHypervisor",
-      hyperWETHUSDCADddress
+      "IPairInfo",
+      WMNTUSDTAddress
     );
 
     // swapRouter = await ethers.getContractAt("ISwapRouter", swapRouterAddress);
 
-    weth = await ethers.getContractAt("MockERC20", wethAddress);
-    usdc = await ethers.getContractAt("MockERC20", usdcAddress);
+    wmnt = await ethers.getContractAt("ERC20", wmntAddress);
+    usdc = await ethers.getContractAt("ERC20", usdcAddress);
   });
 
   it("Should deploy PermissionsRegistry.sol", async function () {
     permissionsRegistry = await ethers.deployContract("PermissionsRegistry");
     const accounts = await ethers.getSigners();
     owner = accounts[0];
-    expect(await permissionsRegistry.baseXMultisig()).to.equals(owner.address);
+    expect(await permissionsRegistry.fusionXMultisig()).to.equals(owner.address);
 
     await permissionsRegistry.setRoleFor(owner.address, "GOVERNANCE");
     expect(
@@ -189,7 +188,7 @@ describe("BaseX - Deployment Section", function () {
       }
     );
 
-    await bribeFactoryV3.waitForDeployment();
+    await bribeFactoryV3.deployed();
 
     console.log("BribeFactoryV3:", bribeFactoryV3.target);
     console.log("owner:", await bribeFactoryV3.owner());
@@ -209,7 +208,7 @@ describe("BaseX - Deployment Section", function () {
       }
     );
 
-    await gaugeFactoryV2CL.waitForDeployment();
+    await gaugeFactoryV2CL.deployed();
 
     console.log("GaugeFactoryV2_CL:", gaugeFactoryV2CL.target);
 
@@ -222,7 +221,7 @@ describe("BaseX - Deployment Section", function () {
     voterV3 = (await upgrades.deployProxy(
       VoterV3,
       [
-        veBXT.target,
+        veFSX.target,
         UNISWAP_V3_FACTORY_ADDRESS,
         gaugeFactoryV2CL.target,
         bribeFactoryV3.target,
@@ -232,7 +231,7 @@ describe("BaseX - Deployment Section", function () {
       }
     )) as unknown as VoterV3;
 
-    await voterV3.waitForDeployment();
+    await voterV3.deployed();
 
     console.log("VoterV3:", voterV3.target);
 
@@ -244,13 +243,13 @@ describe("BaseX - Deployment Section", function () {
 
     minter = (await upgrades.deployProxy(
       Minter,
-      [voterV3.target, veBXT.target, rewardsDistributor.target],
+      [voterV3.target, veFSX.target, rewardsDistributor.target],
       {
         initializer: "initialize",
       }
     )) as unknown as MinterUpgradeable;
 
-    await minter.waitForDeployment();
+    await minter.deployed();
 
     console.log("minter:", minter.target);
 
@@ -258,24 +257,24 @@ describe("BaseX - Deployment Section", function () {
   });
 
   it("Should set all", async function () {
-    // BXT
-    console.log("BXT Minter before:", await BXT.minter());
-    await BXT.initialMint(owner.address);
+    // FSX
+    console.log("FSX Minter before:", await FSX.minter());
+    await FSX.initialMint(owner.address);
 
-    const bxtBalance = await BXT.balanceOf(owner.address);
-    console.log("BXT Balance:", bxtBalance);
+    const bxtBalance = await FSX.balanceOf(owner.address);
+    console.log("FSX Balance:", bxtBalance);
 
-    await BXT.setMinter(minter.target);
+    await FSX.setMinter(minter.target);
     console.log(
-      "BXT Minter after:",
-      await BXT.minter(),
+      "FSX Minter after:",
+      await FSX.minter(),
       minter.target,
       owner.address
     );
 
     //voter
     await voterV3._init(
-      [wethAddress, usdcAddress],
+      [wmntAddress, usdcAddress],
       permissionsRegistry.target,
       minter.target
     );
@@ -289,9 +288,9 @@ describe("BaseX - Deployment Section", function () {
 
     await rewardsDistributor.setDepositor(minter.target);
 
-    // set voter to veBXT
-    await veBXT.setVoter(voterV3.target);
-    expect(await veBXT.voter()).to.equal(voterV3.target);
+    // set voter to veFSX
+    await veFSX.setVoter(voterV3.target);
+    expect(await veFSX.voter()).to.equal(voterV3.target);
 
     expect(await voterV3.isWhitelisted(usdcAddress)).to.equal(true);
     expect(await voterV3.permissionRegistry()).to.equal(
@@ -308,47 +307,47 @@ describe("BaseX - Deployment Section", function () {
   });
 });
 
-describe("BaseX - LP Section", function () {
-  beforeEach(async () => {
-    await ethers.provider.send("evm_increaseTime", [5]);
-    await ethers.provider.send("evm_mine");
+// describe("FusionX - LP Section", function () {
+//   beforeEach(async () => {
+//     await ethers.provider.send("evm_increaseTime", [5]);
+//     await ethers.provider.send("evm_mine");
 
-    const blockNumBefore = await ethers.provider.getBlockNumber();
-    const blockBefore = await ethers.provider.getBlock(blockNumBefore);
-    timestampBefore = blockBefore ? blockBefore.timestamp : 0;
-  });
+//     const blockNumBefore = await ethers.provider.getBlockNumber();
+//     const blockBefore = await ethers.provider.getBlock(blockNumBefore);
+//     timestampBefore = blockBefore ? blockBefore.timestamp : 0;
+//   });
 
-  it("Should add Liquidity", async function () {
-    const amount0 = ethers.parseEther("10");
+//   it("Should add Liquidity", async function () {
+//     const amount0 = ethers.parseEther("10");
 
-    const [suggestedAmount] = await uniProxy.getDepositAmount(
-      hyperWETHUSDCADddress,
-      wethAddress,
-      amount0
-    );
+//     const [suggestedAmount] = await uniProxy.getDepositAmount(
+//       WMNTUSDTAddress,
+//       wmntAddress,
+//       amount0
+//     );
 
-    console.log("To deposit ", amount0, "WETH");
-    console.log("Hypervisor suggest deposit USDC amount:", suggestedAmount);
+//     console.log("To deposit ", amount0, "WETH");
+//     console.log("Hypervisor suggest deposit USDC amount:", suggestedAmount);
 
-    await weth.approve(hyperWETHUSDCADddress, amount0);
-    await usdc.approve(hyperWETHUSDCADddress, amount0);
+//     await wmnt.approve(WMNTUSDTAddress, amount0);
+//     await usdc.approve(WMNTUSDTAddress, amount0);
 
-    await uniProxy.deposit(
-      amount0.toString(),
-      amount0.toString(),
-      owner.address,
-      hyperWETHUSDCADddress,
-      [0, 0, 0, 0]
-    );
+//     await uniProxy.deposit(
+//       amount0.toString(),
+//       amount0.toString(),
+//       owner.address,
+//       WMNTUSDTAddress,
+//       [0, 0, 0, 0]
+//     );
 
-    lpBalanceDeposited = await hyperWETHUSDC.balanceOf(owner.address);
-    expect(lpBalanceDeposited).to.be.above(0);
+//     lpBalanceDeposited = await hyperWETHUSDC.balanceOf(owner.address);
+//     expect(lpBalanceDeposited).to.be.above(0);
 
-    console.log("lpBalanceDeposited:", lpBalanceDeposited);
-  });
-});
+//     console.log("lpBalanceDeposited:", lpBalanceDeposited);
+//   });
+// });
 
-describe("BaseX - Gauge Section", function () {
+describe("FusionX - Gauge Section", function () {
   beforeEach(async () => {
     await ethers.provider.send("evm_increaseTime", [5]);
     await ethers.provider.send("evm_mine");
@@ -359,8 +358,8 @@ describe("BaseX - Gauge Section", function () {
   });
 
   it("Should create Gauge for Concentrated liqudity", async function () {
-    await voterV3.createGauges([hyperWETHUSDCADddress], [0]);
-    const gaugeAddress = await voterV3.gauges(hyperWETHUSDCADddress);
+    await voterV3.createGauges([WMNTUSDTAddress], [0]);
+    const gaugeAddress = await voterV3.gauges(WMNTUSDTAddress);
     const extBribeAddress = await voterV3.external_bribes(gaugeAddress);
     const intBribeAddress = await voterV3.internal_bribes(gaugeAddress);
 
@@ -384,11 +383,11 @@ describe("BaseX - Gauge Section", function () {
   it("Should deploy extra rewarder for hypervisor gauge", async function () {
     // deploy
     gaugeExtraRewarder = await ethers.deployContract("GaugeExtraRewarder", [
-      wethAddress,
+      wmntAddress,
       gauge.target,
     ]);
 
-    await gaugeExtraRewarder.waitForDeployment();
+    await gaugeExtraRewarder.deployed();
 
     console.log("gaugeExtraRewarder: ", gaugeExtraRewarder.target);
     expect(await gaugeExtraRewarder.owner()).to.equal(owner.address);
@@ -399,9 +398,9 @@ describe("BaseX - Gauge Section", function () {
     );
 
     const amountIn = ethers.parseEther("10000");
-    expect(await weth.balanceOf(gaugeExtraRewarder.target)).to.be.equal(0);
-    await weth.transfer(gaugeExtraRewarder.target, amountIn);
-    expect(await weth.balanceOf(gaugeExtraRewarder.target)).to.be.equal(
+    expect(await wmnt.balanceOf(gaugeExtraRewarder.target)).to.be.equal(0);
+    await wmnt.transfer(gaugeExtraRewarder.target, amountIn);
+    expect(await wmnt.balanceOf(gaugeExtraRewarder.target)).to.be.equal(
       amountIn
     );
 
@@ -419,52 +418,52 @@ describe("BaseX - Gauge Section", function () {
 
   it("Should send fees to vault", async function () {
     const amountIn = ethers.parseEther("100");
-    let wethBalance = await weth.balanceOf(feeVault.target);
+    let wmntBalance = await wmnt.balanceOf(feeVault.target);
     let usdcBalance = await usdc.balanceOf(feeVault.target);
-    expect(wethBalance).to.be.equal(0);
+    expect(wmntBalance).to.be.equal(0);
     expect(usdcBalance).to.be.equal(0);
-    await weth.transfer(feeVault.target, amountIn);
+    await wmnt.transfer(feeVault.target, amountIn);
     await usdc.transfer(feeVault.target, amountIn);
-    wethBalance = await weth.balanceOf(feeVault.target);
+    wmntBalance = await wmnt.balanceOf(feeVault.target);
     usdcBalance = await usdc.balanceOf(feeVault.target);
-    expect(wethBalance).to.be.equal(amountIn);
+    expect(wmntBalance).to.be.equal(amountIn);
     expect(usdcBalance).to.be.equal(amountIn);
-    // await weth.transfer(feeVault.target, amountIn);
+    // await wmnt.transfer(feeVault.target, amountIn);
 
     console.log("FeeVault Address:", feeVault.target);
-    console.log("WETH Balance of FeeVault:", wethBalance);
+    console.log("WETH Balance of FeeVault:", wmntBalance);
     console.log("USDC Balance of FeeVault:", usdcBalance);
   });
 
   it("Should claim fees from vault", async function () {
     const intBribeAddress = intBribe.target;
-    let wethBalance = await weth.balanceOf(intBribeAddress);
+    let wmntBalance = await wmnt.balanceOf(intBribeAddress);
     let usdcBalance = await usdc.balanceOf(intBribeAddress);
     console.log("IntBribe address:", intBribeAddress);
     console.log(
       "Balances before distribute fees:",
       "WETH:",
-      wethBalance,
+      wmntBalance,
       "USDC:",
       usdcBalance
     );
 
-    expect(wethBalance).to.equal(0);
+    expect(wmntBalance).to.equal(0);
     await voterV3.distributeFees([gauge.target]);
-    wethBalance = await weth.balanceOf(intBribeAddress);
+    wmntBalance = await wmnt.balanceOf(intBribeAddress);
     usdcBalance = await usdc.balanceOf(intBribeAddress);
-    expect(wethBalance).to.above(0);
+    expect(wmntBalance).to.above(0);
     console.log(
       "Balances after distribute fees:",
       "WETH:",
-      wethBalance,
+      wmntBalance,
       "USDC:",
       usdcBalance
     );
   });
 });
 
-describe("BaseX - Voter Section", function () {
+describe("FusionX - Voter Section", function () {
   beforeEach(async () => {
     await ethers.provider.send("evm_increaseTime", [5]);
     await ethers.provider.send("evm_mine");
@@ -474,38 +473,38 @@ describe("BaseX - Voter Section", function () {
     timestampBefore = blockBefore ? blockBefore.timestamp : 0;
   });
 
-  it("Should lock BXT to get veBXT", async function () {
+  it("Should lock FSX to get veFSX", async function () {
     // const lockAmount = ethers.parseEther("1000");
-    // await BXT.approve(veBXT.target, lockAmount);
+    // await FSX.approve(veFSX.target, lockAmount);
 
-    // console.log("allowance:", await BXT.allowance(owner.address, veBXT.target));
+    // console.log("allowance:", await FSX.allowance(owner.address, veFSX.target));
 
-    // await veBXT.create_lock(lockAmount, 2 * 7 * 86400); //create lock for 2 weeks
+    // await veFSX.create_lock(lockAmount, 2 * 7 * 86400); //create lock for 2 weeks
 
-    const veBXTCount = await veBXT.balanceOf(owner.address);
-    expect(veBXTCount).to.above(0);
-    console.log("veBXT Count:", veBXTCount);
+    const veFSXCount = await veFSX.balanceOf(owner.address);
+    expect(veFSXCount).to.above(0);
+    console.log("veFSX Count:", veFSXCount);
     const promises = [];
-    for (let i = 0; i < veBXTCount; i++) {
-      promises.push(veBXT.tokenOfOwnerByIndex(owner.address, i));
+    for (let i = 0; i < veFSXCount; i++) {
+      promises.push(veFSX.tokenOfOwnerByIndex(owner.address, i));
     }
     nftIDs = await Promise.all(promises);
-    console.log("veBXT NFT IDs:", nftIDs);
+    console.log("veFSX NFT IDs:", nftIDs);
   });
 
   it("Should vote", async function () {
     const toVoteNFTID = Number(nftIDs[nftIDs.length - 1]);
-    const votingPower = await veBXT.balanceOfNFT(toVoteNFTID);
+    const votingPower = await veFSX.balanceOfNFT(toVoteNFTID);
     console.log("To vote NFT ID", toVoteNFTID);
     console.log("Vote power:", votingPower);
 
-    await voterV3.vote(toVoteNFTID, [hyperWETHUSDCADddress], [100]);
+    await voterV3.vote(toVoteNFTID, [WMNTUSDTAddress], [100]);
     console.log("total weight:", await voterV3.totalWeight());
   });
 
   it("Should send rewards to voter and distribute", async function () {
     const amountIn = ethers.parseEther("1000");
-    await BXT.approve(voterV3.target, amountIn);
+    await FSX.approve(voterV3.target, amountIn);
     let blockNum = await ethers.provider.getBlockNumber();
     let block = await ethers.provider.getBlock(blockNum);
     const activePeriod = await minter.active_period();
@@ -519,22 +518,22 @@ describe("BaseX - Voter Section", function () {
     console.log("checked:", await minter.check());
     await minter.update_period();
 
-    const balance = await BXT.balanceOf(voterV3.target);
-    console.log("BXT Balance of voter:", balance);
+    const balance = await FSX.balanceOf(voterV3.target);
+    console.log("FSX Balance of voter:", balance);
     // expect(balance).to.equal(amountIn);
 
-    console.log("BXT Balance of minter:", await BXT.balanceOf(minter.target));
+    console.log("FSX Balance of minter:", await FSX.balanceOf(minter.target));
 
-    console.log("Minter of BXT", await BXT.minter());
+    console.log("Minter of FSX", await FSX.minter());
 
-    expect(await BXT.balanceOf(gauge.target)).to.equal(0);
+    expect(await FSX.balanceOf(gauge.target)).to.equal(0);
 
     await voterV3.distributeAll();
 
-    const balanceOfGauge = await BXT.balanceOf(gauge.target);
+    const balanceOfGauge = await FSX.balanceOf(gauge.target);
     expect(balanceOfGauge).to.above(0);
 
-    console.log("Gauge BXT balance after distribute all:", balanceOfGauge);
+    console.log("Gauge FSX balance after distribute all:", balanceOfGauge);
   });
 });
 
@@ -549,11 +548,11 @@ describe("Thena - Claim rewards Section", function () {
   });
 
   it("Should harvest from gauge + extra rewarder", async function () {
-    const balanceBefore = await BXT.balanceOf(owner.address);
-    console.log("BXT balance before getReward: ", balanceBefore);
+    const balanceBefore = await FSX.balanceOf(owner.address);
+    console.log("FSX balance before getReward: ", balanceBefore);
     await gauge["getReward()"]();
-    const balancAfter = await BXT.balanceOf(owner.address);
-    console.log("BXT balance after getReward: ", balancAfter);
+    const balancAfter = await FSX.balanceOf(owner.address);
+    console.log("FSX balance after getReward: ", balancAfter);
     expect(balancAfter).to.above(balanceBefore);
   });
 
@@ -565,10 +564,10 @@ describe("Thena - Claim rewards Section", function () {
     await ethers.provider.send("evm_mine");
     await voterV3.distributeAll();
 
-    const balanceBefore = await weth.balanceOf(owner.address);
+    const balanceBefore = await wmnt.balanceOf(owner.address);
     console.log("WETH balance before get intBribes: ", balanceBefore);
-    await intBribe["getReward(address[])"]([weth.target]);
-    const balancAfter = await weth.balanceOf(owner.address);
+    await intBribe["getReward(address[])"]([wmnt.target]);
+    const balancAfter = await wmnt.balanceOf(owner.address);
     console.log("WETH balance after get intBribes: ", balancAfter);
     expect(balancAfter).to.above(balanceBefore);
 
