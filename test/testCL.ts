@@ -194,6 +194,15 @@ describe("FusionX - Deployment Section", function () {
     console.log("owner:", await bribeFactoryV3.owner());
 
     expect(await bribeFactoryV3.owner()).to.equal(owner.address);
+
+    await bribeFactoryV3.pushDefaultRewardToken(wmntAddress);
+    expect(await bribeFactoryV3.defaultRewardToken(0)).to.equal(wmntAddress);
+
+    await bribeFactoryV3.pushDefaultRewardToken(usdcAddress);
+    expect(await bribeFactoryV3.defaultRewardToken(1)).to.equal(usdcAddress);
+
+    await bribeFactoryV3.pushDefaultRewardToken(FSX.address);
+    expect(await bribeFactoryV3.defaultRewardToken(2)).to.equal(FSX.address);
   });
 
   it("Should deploy GaugeFactoryV2.sol", async function () {
@@ -293,6 +302,7 @@ describe("FusionX - Deployment Section", function () {
     expect(await veFSX.voter()).to.equal(voterV3.address);
 
     expect(await voterV3.isWhitelisted(usdcAddress)).to.equal(true);
+    expect(await voterV3.isWhitelisted(wmntAddress)).to.equal(true);
     expect(await voterV3.permissionRegistry()).to.equal(
       permissionsRegistry.address
     );
@@ -358,7 +368,7 @@ describe("FusionX - Gauge Section", function () {
   });
 
   it("Should create Gauge for Concentrated liqudity", async function () {
-    await voterV3.createGauges([WMNTUSDTAddress], [0]);
+    await voterV3.createGauges([WMNTUSDTAddress], ["0"]);
     const gaugeAddress = await voterV3.gauges(WMNTUSDTAddress);
     const extBribeAddress = await voterV3.external_bribes(gaugeAddress);
     const intBribeAddress = await voterV3.internal_bribes(gaugeAddress);
