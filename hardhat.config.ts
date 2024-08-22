@@ -98,6 +98,8 @@ const config = {
           apiURL: "https://explorer.sepolia.mantle.xyz/api",
           browserURL: "https://explorer.sepolia.mantle.xyz/",
         },
+        timeout: 200000000,
+        accounts: [process.env.KEY_TESTNET as string],
       },
     ],
   },

@@ -8,7 +8,7 @@ import {
   VotingEscrow,
   IUniProxy,
   ISwapRouter,
-  ERC20,
+  MockERC20,
   PermissionsRegistry,
   BribeFactoryV3,
   RewardsDistributor,
@@ -43,8 +43,8 @@ let veFSX: VotingEscrow;
 let uniProxy: IUniProxy;
 let hyperWETHUSDC: IPairInfo;
 let swapRouter: ISwapRouter;
-let wmnt: ERC20;
-let usdc: ERC20;
+let wmnt: MockERC20;
+let usdc: MockERC20;
 let permissionsRegistry: PermissionsRegistry;
 let bribeFactoryV3: any;
 let gaugeFactoryV2CL: any;
@@ -61,15 +61,15 @@ let nftIDs: BigInt[];
 
 describe("FusionX - Deployment Section", function () {
   beforeEach(async () => {
-    await ethers.provider.send("evm_increaseTime", [5]);
-    await ethers.provider.send("evm_mine");
+    // await ethers.provider.send("evm_increaseTime", [5]);
+    // await ethers.provider.send("evm_mine");
 
     const blockNumBefore = await ethers.provider.getBlockNumber();
     const blockBefore = await ethers.provider.getBlock(blockNumBefore);
     timestampBefore = blockBefore ? blockBefore.timestamp : 0;
   });
 
-  it("Should load external contract for test (ERC20,LPs,..)", async function () {
+  it("Should load external contract for test (MockERC20,LPs,..)", async function () {
     [owner] = await ethers.getSigners();
 
     FSX = await ethers.deployContract("FusionX");
@@ -107,8 +107,8 @@ describe("FusionX - Deployment Section", function () {
 
     // // swapRouter = await ethers.getContractAt("ISwapRouter", swapRouterAddress);
 
-    // wmnt = await ethers.getContractAt("ERC20", wmntAddress);
-    // usdc = await ethers.getContractAt("ERC20", usdcAddress);
+    // wmnt = await ethers.getContractAt("MockERC20", wmntAddress);
+    // usdc = await ethers.getContractAt("MockERC20", usdcAddress);
   });
 
   it("Should deploy PermissionsRegistry.sol", async function () {
@@ -319,8 +319,8 @@ describe("FusionX - Deployment Section", function () {
 
 // describe("FusionX - LP Section", function () {
 //   beforeEach(async () => {
-//     await ethers.provider.send("evm_increaseTime", [5]);
-//     await ethers.provider.send("evm_mine");
+//     // await ethers.provider.send("evm_increaseTime", [5]);
+//     // await ethers.provider.send("evm_mine");
 
 //     const blockNumBefore = await ethers.provider.getBlockNumber();
 //     const blockBefore = await ethers.provider.getBlock(blockNumBefore);
@@ -359,8 +359,8 @@ describe("FusionX - Deployment Section", function () {
 
 describe("FusionX - Gauge Section", function () {
   beforeEach(async () => {
-    await ethers.provider.send("evm_increaseTime", [5]);
-    await ethers.provider.send("evm_mine");
+    // await ethers.provider.send("evm_increaseTime", [5]);
+    // await ethers.provider.send("evm_mine");
 
     const blockNumBefore = await ethers.provider.getBlockNumber();
     const blockBefore = await ethers.provider.getBlock(blockNumBefore);
@@ -368,7 +368,7 @@ describe("FusionX - Gauge Section", function () {
   });
 
   it("Should create Gauge for Concentrated liqudity", async function () {
-    await voterV3.createGauges([WMNTUSDTAddress], ["0"]);
+    await voterV3.createGauges([WMNTUSDTAddress], [0]);
     const gaugeAddress = await voterV3.gauges(WMNTUSDTAddress);
     const extBribeAddress = await voterV3.external_bribes(gaugeAddress);
     const intBribeAddress = await voterV3.internal_bribes(gaugeAddress);
@@ -475,8 +475,8 @@ describe("FusionX - Gauge Section", function () {
 
 describe("FusionX - Voter Section", function () {
   beforeEach(async () => {
-    await ethers.provider.send("evm_increaseTime", [5]);
-    await ethers.provider.send("evm_mine");
+    // await ethers.provider.send("evm_increaseTime", [5]);
+    // await ethers.provider.send("evm_mine");
 
     const blockNumBefore = await ethers.provider.getBlockNumber();
     const blockBefore = await ethers.provider.getBlock(blockNumBefore);
@@ -521,7 +521,7 @@ describe("FusionX - Voter Section", function () {
     console.log("Block timestamp before:", block?.timestamp);
     console.log("ActivePeriod:", activePeriod);
     await ethers.provider.send("evm_increaseTime", [7 * 86400]);
-    await ethers.provider.send("evm_mine");
+    // await ethers.provider.send("evm_mine");
     blockNum = await ethers.provider.getBlockNumber();
     block = await ethers.provider.getBlock(blockNum);
     console.log("Block timestamp after:", block?.timestamp);
@@ -549,8 +549,8 @@ describe("FusionX - Voter Section", function () {
 
 describe("Thena - Claim rewards Section", function () {
   beforeEach(async () => {
-    await ethers.provider.send("evm_increaseTime", [5]);
-    await ethers.provider.send("evm_mine");
+    // await ethers.provider.send("evm_increaseTime", [5]);
+    // await ethers.provider.send("evm_mine");
 
     const blockNumBefore = await ethers.provider.getBlockNumber();
     const blockBefore = await ethers.provider.getBlock(blockNumBefore);
@@ -568,10 +568,10 @@ describe("Thena - Claim rewards Section", function () {
 
   it("Should get intBribes", async function () {
     await ethers.provider.send("evm_increaseTime", [8 * 86400]);
-    await ethers.provider.send("evm_mine");
+    // await ethers.provider.send("evm_mine");
     await voterV3.distributeAll();
     await ethers.provider.send("evm_increaseTime", [8 * 86400]);
-    await ethers.provider.send("evm_mine");
+    // await ethers.provider.send("evm_mine");
     await voterV3.distributeAll();
 
     const balanceBefore = await wmnt.balanceOf(owner.address);
