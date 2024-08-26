@@ -20,6 +20,7 @@ const mantleSepolia: NetworkUserConfig = {
   url: "https://rpc.sepolia.mantle.xyz",
   chainId: 5003,
   accounts: [process.env.KEY_TESTNET!],
+  gasPrice: 30000000,
 };
 const mantleMainnet: NetworkUserConfig = {
   url: "https://rpc.mantle.xyz",
@@ -124,6 +125,9 @@ const config = {
         },
       }
     ],
+  },
+  mocha: {
+    timeout: 300000000,
   },
   paths: {
     sources: "./contracts/",
