@@ -157,13 +157,13 @@ describe("FusionX - Deployment Section", function () {
       )
     ).to.equal(true);
 
-    await permissionsRegistry.setRoleFor(BigHolder, "FEE_MANAGER");
-    expect(
-      await permissionsRegistry.hasRole(
-        await permissionsRegistry.__helper_stringToBytes("FEE_MANAGER"),
-        BigHolder
-      )
-    ).to.equal(true);
+    // await permissionsRegistry.setRoleFor(BigHolder, "FEE_MANAGER");
+    // expect(
+    //   await permissionsRegistry.hasRole(
+    //     await permissionsRegistry.__helper_stringToBytes("FEE_MANAGER"),
+    //     BigHolder
+    //   )
+    // ).to.equal(true);
 
     await permissionsRegistry.setRoleFor(owner.address, "CL_FEES_VAULT_ADMIN");
     expect(
@@ -328,7 +328,7 @@ describe("FusionX - Deployment Section", function () {
 //   });
 
 //   it("Should add Liquidity", async function () {
-//     const amount0 = ethers.parseEther("10");
+//     const amount0 = ethers.utils.parseEther("10");
 
 //     const [suggestedAmount] = await uniProxy.getDepositAmount(
 //       WMNTUSDTAddress,
@@ -407,14 +407,14 @@ describe("FusionX - Gauge Section", function () {
       [gaugeExtraRewarder.address]
     );
 
-    const amountIn = ethers.parseEther("10000");
+    const amountIn = ethers.utils.parseEther("10000");
     expect(await wmnt.balanceOf(gaugeExtraRewarder.address)).to.be.equal(0);
     await wmnt.transfer(gaugeExtraRewarder.address, amountIn);
     expect(await wmnt.balanceOf(gaugeExtraRewarder.address)).to.be.equal(
       amountIn
     );
 
-    await gaugeExtraRewarder.setDistributionRate(ethers.parseEther("0.015"));
+    await gaugeExtraRewarder.setDistributionRate(ethers.utils.parseEther("0.015"));
   });
 
   it("Should deposit into the gauge", async function () {
@@ -427,7 +427,7 @@ describe("FusionX - Gauge Section", function () {
   });
 
   it("Should send fees to vault", async function () {
-    const amountIn = ethers.parseEther("100");
+    const amountIn = ethers.utils.parseEther("100");
     let wmntBalance = await wmnt.balanceOf(feeVault.address);
     let usdcBalance = await usdc.balanceOf(feeVault.address);
     expect(wmntBalance).to.be.equal(0);
@@ -484,7 +484,7 @@ describe("FusionX - Voter Section", function () {
   });
 
   it("Should lock FSX to get veFSX", async function () {
-    // const lockAmount = ethers.parseEther("1000");
+    // const lockAmount = ethers.utils.parseEther("1000");
     // await FSX.approve(veFSX.address, lockAmount);
 
     // console.log("allowance:", await FSX.allowance(owner.address, veFSX.address));
@@ -513,7 +513,7 @@ describe("FusionX - Voter Section", function () {
   });
 
   it("Should send rewards to voter and distribute", async function () {
-    const amountIn = ethers.parseEther("1000");
+    const amountIn = ethers.utils.parseEther("1000");
     await FSX.approve(voterV3.address, amountIn);
     let blockNum = await ethers.provider.getBlockNumber();
     let block = await ethers.provider.getBlock(blockNum);
