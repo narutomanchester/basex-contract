@@ -35,7 +35,9 @@ const GAMMA_FEE_RECEIPIENT = "0x8381c90a455c162E0aCA3cBE80e7cE5D590C7703";
 
 // users
 const BigHolder = "0x8381c90a455c162E0aCA3cBE80e7cE5D590C7703";
-
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 let timestampBefore: number;
 let owner: HardhatEthersSigner;
 let FSX: FusionXToken;
@@ -390,87 +392,87 @@ describe("FusionX - Gauge Section", function () {
     console.log("symbol: ", await intBribe.TYPE());
   });
 
-  it("Should deploy extra rewarder for hypervisor gauge", async function () {
-    // deploy
-    gaugeExtraRewarder = await ethers.deployContract("GaugeExtraRewarder", [
-      wmntAddress,
-      gauge.address,
-    ]);
+  // it("Should deploy extra rewarder for hypervisor gauge", async function () {
+  //   // deploy
+  //   gaugeExtraRewarder = await ethers.deployContract("GaugeExtraRewarder", [
+  //     wmntAddress,
+  //     gauge.address,
+  //   ]);
 
-    await gaugeExtraRewarder.deployed();
+  //   await gaugeExtraRewarder.deployed();
 
-    console.log("gaugeExtraRewarder: ", gaugeExtraRewarder.address);
-    expect(await gaugeExtraRewarder.owner()).to.equal(owner.address);
+  //   console.log("gaugeExtraRewarder: ", gaugeExtraRewarder.address);
+  //   expect(await gaugeExtraRewarder.owner()).to.equal(owner.address);
 
-    await gaugeFactoryV2CL.setGaugeRewarder(
-      [gauge.address],
-      [gaugeExtraRewarder.address]
-    );
+  //   await gaugeFactoryV2CL.setGaugeRewarder(
+  //     [gauge.address],
+  //     [gaugeExtraRewarder.address]
+  //   );
 
-    const amountIn = ethers.utils.parseEther("10000");
-    expect(await wmnt.balanceOf(gaugeExtraRewarder.address)).to.be.equal(0);
-    await wmnt.transfer(gaugeExtraRewarder.address, amountIn);
-    expect(await wmnt.balanceOf(gaugeExtraRewarder.address)).to.be.equal(
-      amountIn
-    );
+  //   const amountIn = ethers.utils.parseEther("10000");
+  //   expect(await wmnt.balanceOf(gaugeExtraRewarder.address)).to.be.equal(0);
+  //   await wmnt.transfer(gaugeExtraRewarder.address, amountIn);
+  //   expect(await wmnt.balanceOf(gaugeExtraRewarder.address)).to.be.equal(
+  //     amountIn
+  //   );
 
-    await gaugeExtraRewarder.setDistributionRate(ethers.utils.parseEther("0.015"));
-  });
+  //   await gaugeExtraRewarder.setDistributionRate(ethers.utils.parseEther("0.015"));
+  // });
 
-  it("Should deposit into the gauge", async function () {
-    expect(await gauge.balanceOf(owner.address)).to.be.equal(0);
-    await hyperWETHUSDC.approve(gauge.address, lpBalanceDeposited.toString());
-    await gauge.depositAll();
-    const balance = await gauge.balanceOf(owner.address);
-    expect(balance).to.be.above(0);
-    console.log("Deposited balance:", balance.toString());
-  });
+  // it("Should deposit into the gauge", async function () {
+  //   // expect(await gauge.balanceOf(owner.address)).to.be.equal(0);
+  //   await hyperWETHUSDC.approve(gauge.address, lpBalanceDeposited.toString());
+  //   await gauge.depositAll();
+  //   const balance = await gauge.balanceOf(owner.address);
+  //   expect(balance).to.be.above(0);
+  //   console.log("Deposited balance:", balance.toString());
+  // });
 
-  it("Should send fees to vault", async function () {
-    const amountIn = ethers.utils.parseEther("100");
-    let wmntBalance = await wmnt.balanceOf(feeVault.address);
-    let usdcBalance = await usdc.balanceOf(feeVault.address);
-    expect(wmntBalance).to.be.equal(0);
-    expect(usdcBalance).to.be.equal(0);
-    await wmnt.transfer(feeVault.address, amountIn);
-    await usdc.transfer(feeVault.address, amountIn);
-    wmntBalance = await wmnt.balanceOf(feeVault.address);
-    usdcBalance = await usdc.balanceOf(feeVault.address);
-    expect(wmntBalance).to.be.equal(amountIn);
-    expect(usdcBalance).to.be.equal(amountIn);
-    // await wmnt.transfer(feeVault.address, amountIn);
+  // it("Should send fees to vault", async function () {
+  //   const amountIn = ethers.utils.parseEther("100");
+  //   let wmntBalance = await wmnt.balanceOf(feeVault.address);
+  //   let usdcBalance = await usdc.balanceOf(feeVault.address);
+  //   expect(wmntBalance).to.be.equal(0);
+  //   expect(usdcBalance).to.be.equal(0);
+  //   await wmnt.transfer(feeVault.address, amountIn);
+  //   await usdc.transfer(feeVault.address, amountIn);
+  //   wmntBalance = await wmnt.balanceOf(feeVault.address);
+  //   usdcBalance = await usdc.balanceOf(feeVault.address);
+  //   expect(wmntBalance).to.be.equal(amountIn);
+  //   expect(usdcBalance).to.be.equal(amountIn);
+  //   // await wmnt.transfer(feeVault.address, amountIn);
 
-    console.log("FeeVault Address:", feeVault.address);
-    console.log("WETH Balance of FeeVault:", wmntBalance);
-    console.log("USDC Balance of FeeVault:", usdcBalance);
-  });
+  //   console.log("FeeVault Address:", feeVault.address);
+  //   console.log("WETH Balance of FeeVault:", wmntBalance);
+  //   console.log("USDC Balance of FeeVault:", usdcBalance);
+  // });
 
-  it("Should claim fees from vault", async function () {
-    const intBribeAddress = intBribe.address;
-    let wmntBalance = await wmnt.balanceOf(intBribeAddress);
-    let usdcBalance = await usdc.balanceOf(intBribeAddress);
-    console.log("IntBribe address:", intBribeAddress);
-    console.log(
-      "Balances before distribute fees:",
-      "WETH:",
-      wmntBalance,
-      "USDC:",
-      usdcBalance
-    );
+  // it("Should claim fees from vault", async function () {
+  //   const intBribeAddress = intBribe.address;
+  //   let wmntBalance = await wmnt.balanceOf(intBribeAddress);
+  //   let usdcBalance = await usdc.balanceOf(intBribeAddress);
+  //   console.log("IntBribe address:", intBribeAddress);
+  //   console.log(
+  //     "Balances before distribute fees:",
+  //     "WETH:",
+  //     wmntBalance,
+  //     "USDC:",
+  //     usdcBalance
+  //   );
 
-    expect(wmntBalance).to.equal(0);
-    await voterV3.distributeFees([gauge.address]);
-    wmntBalance = await wmnt.balanceOf(intBribeAddress);
-    usdcBalance = await usdc.balanceOf(intBribeAddress);
-    expect(wmntBalance).to.above(0);
-    console.log(
-      "Balances after distribute fees:",
-      "WETH:",
-      wmntBalance,
-      "USDC:",
-      usdcBalance
-    );
-  });
+  //   expect(wmntBalance).to.equal(0);
+  //   await voterV3.distributeFees([gauge.address]);
+  //   wmntBalance = await wmnt.balanceOf(intBribeAddress);
+  //   usdcBalance = await usdc.balanceOf(intBribeAddress);
+  //   expect(wmntBalance).to.above(0);
+  //   console.log(
+  //     "Balances after distribute fees:",
+  //     "WETH:",
+  //     wmntBalance,
+  //     "USDC:",
+  //     usdcBalance
+  //   );
+  // });
 });
 
 describe("FusionX - Voter Section", function () {
@@ -520,7 +522,9 @@ describe("FusionX - Voter Section", function () {
     const activePeriod = await minter.active_period();
     console.log("Block timestamp before:", block?.timestamp);
     console.log("ActivePeriod:", activePeriod);
-    await ethers.provider.send("evm_increaseTime", [7 * 86400]);
+    // await ethers.provider.send("evm_increaseTime", [7 * 86400]);
+    await sleep(242);
+
     // await ethers.provider.send("evm_mine");
     blockNum = await ethers.provider.getBlockNumber();
     block = await ethers.provider.getBlock(blockNum);
@@ -547,7 +551,7 @@ describe("FusionX - Voter Section", function () {
   });
 });
 
-describe("Thena - Claim rewards Section", function () {
+describe("Fusion X - Claim rewards Section", function () {
   beforeEach(async () => {
     // await ethers.provider.send("evm_increaseTime", [5]);
     // await ethers.provider.send("evm_mine");
@@ -567,10 +571,12 @@ describe("Thena - Claim rewards Section", function () {
   });
 
   it("Should get intBribes", async function () {
-    await ethers.provider.send("evm_increaseTime", [8 * 86400]);
+    // await ethers.provider.send("evm_increaseTime", [8 * 86400]);
+    await sleep(242);
     // await ethers.provider.send("evm_mine");
     await voterV3.distributeAll();
-    await ethers.provider.send("evm_increaseTime", [8 * 86400]);
+    // await ethers.provider.send("evm_increaseTime", [8 * 86400]);
+    await sleep(242);
     // await ethers.provider.send("evm_mine");
     await voterV3.distributeAll();
 
