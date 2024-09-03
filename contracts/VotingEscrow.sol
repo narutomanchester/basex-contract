@@ -821,6 +821,13 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
         _deposit_for(_tokenId, 0, unlock_time, _locked, DepositType.INCREASE_UNLOCK_TIME);
     }
 
+
+    /// @notice early withdraw for `_tokenId`
+    /// @dev user need to pay some penalty for early unlock
+    function early_withdraw(uint _tokenId) external nonreentrant {
+
+    }
+
     /// @notice Withdraw all tokens for `_tokenId`
     /// @dev Only possible if the lock has expired
     function withdraw(uint _tokenId) external nonreentrant {

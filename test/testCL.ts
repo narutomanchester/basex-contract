@@ -514,6 +514,16 @@ describe("FusionX - Voter Section", function () {
     console.log("total weight:", await voterV3.totalWeight());
   });
 
+  // it("Should notify rewards", async function () {
+  //   await voterV3.setMinter(owner.address);
+    
+  //   const voterV3before = await FSX.balanceOf(voterV3.address);
+  //   await voterV3.notifyRewardAmount(BigInt(1000 * 1e18));
+  //   const voterV3After = await FSX.balanceOf(owner.address);
+  //   console.log("VoterV3 balance after getReward: ", voterV3);
+  //   expect(voterV3After).to.above(voterV3before);
+  // });
+
   it("Should send rewards to voter and distribute", async function () {
     const amountIn = ethers.utils.parseEther("1000");
     await FSX.approve(voterV3.address, amountIn);
@@ -564,7 +574,7 @@ describe("Fusion X - Claim rewards Section", function () {
   it("Should harvest from gauge + extra rewarder", async function () {
     const balanceBefore = await FSX.balanceOf(owner.address);
     console.log("FSX balance before getReward: ", balanceBefore);
-    await gauge["getReward()"]();
+    await gauge.getReward();
     const balancAfter = await FSX.balanceOf(owner.address);
     console.log("FSX balance after getReward: ", balancAfter);
     expect(balancAfter).to.above(balanceBefore);
