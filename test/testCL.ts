@@ -486,12 +486,12 @@ describe("FusionX - Voter Section", function () {
   });
 
   it("Should lock FSX to get veFSX", async function () {
-    // const lockAmount = ethers.utils.parseEther("1000");
-    // await FSX.approve(veFSX.address, lockAmount);
+    const lockAmount = ethers.utils.parseEther("1000");
+    await FSX.approve(veFSX.address, lockAmount);
 
-    // console.log("allowance:", await FSX.allowance(owner.address, veFSX.address));
+    console.log("allowance:", await FSX.allowance(owner.address, veFSX.address));
 
-    // await veFSX.create_lock(lockAmount, 2 * 7 * 86400); //create lock for 2 weeks
+    await veFSX.create_lock(lockAmount, 2 * 7 * 86400); //create lock for 2 weeks
 
     const veFSXCount = await veFSX.balanceOf(owner.address);
     expect(veFSXCount).to.above(0);

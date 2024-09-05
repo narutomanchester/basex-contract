@@ -3,6 +3,7 @@ pragma solidity 0.8.13;
 
 import {IERC721, IERC721Metadata} from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import {IVotes} from "@openzeppelin/contracts/governance/utils/IVotes.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import {IERC20} from "./interfaces/IERC20.sol";
 import {IVeArtProxy} from "./interfaces/IVeArtProxy.sol";
@@ -15,7 +16,7 @@ import {IVotingEscrow} from "./interfaces/IVotingEscrow.sol";
 /// @author Modified from Curve (https://github.com/curvefi/curve-dao-contracts/blob/master/contracts/VotingEscrow.vy)
 /// @author Modified from Nouns DAO (https://github.com/withtally/my-nft-dao-project/blob/main/contracts/ERC721Checkpointable.sol)
 /// @dev Vote weight decays linearly over time. Lock time cannot be more than `MAXTIME` (2 years).
-contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
+contract VotingEscrow is IERC721, IERC721Metadata, IVotes, Ownable {
     enum DepositType {
         DEPOSIT_FOR_TYPE,
         CREATE_LOCK_TYPE,
@@ -27,7 +28,7 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
 
     struct LockedBalance {
         int128 amount;
-        uint lock_duration;
+        uint start;
         uint end;
     }
 
@@ -61,7 +62,7 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
     );
     event Withdraw(address indexed provider, uint tokenId, uint value, uint ts);
     event Supply(uint prevSupply, uint supply);
-    event setPenaltyFeeForEarlyWithdraw(uint newPenaltyFee);
+    event SetPenaltyFeeForEarlyWithdraw(uint newPenaltyFee);
 
     /*//////////////////////////////////////////////////////////////
                                CONSTRUCTOR
@@ -71,6 +72,7 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
     address public voter;
     address public team;
     address public artProxy;
+    uint public penaltyfee; 
 
     mapping(uint => Point) public point_history; // epoch -> unsigned point
 
@@ -705,7 +707,7 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
         uint _tokenId,
         uint _value,
         uint unlock_time,
-        uint lock_duration,
+        uint start,
         LockedBalance memory locked_balance,
         DepositType deposit_type
     ) internal {
@@ -719,7 +721,7 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
         _locked.amount += int128(int256(_value));
         if (unlock_time != 0) {
             _locked.end = unlock_time;
-            _locked.lock_duration = lock_duration;
+            _locked.start = start;
         }
         locked[_tokenId] = _locked;
 
@@ -758,7 +760,7 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
         require(_value > 0, "ERROR: deposit value need >0"); // dev: need non-zero value
         require(_locked.amount > 0, 'No existing lock found');
         require(_locked.end > block.timestamp, 'Cannot add to expired lock. Withdraw');
-        _deposit_for(_tokenId, _value, 0, _locked.lock_duration, _locked, DepositType.DEPOSIT_FOR_TYPE);
+        _deposit_for(_tokenId, _value, 0, _locked.start, _locked, DepositType.DEPOSIT_FOR_TYPE);
     }
 
     /// @notice Deposit `_value` tokens for `_to` and lock for `_lock_duration`
@@ -766,7 +768,8 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
     /// @param _lock_duration Number of seconds to lock tokens for (rounded down to nearest week)
     /// @param _to Address to deposit
     function _create_lock(uint _value, uint _lock_duration, address _to) internal returns (uint) {
-        uint unlock_time = (block.timestamp + _lock_duration) / WEEK * WEEK; // Locktime is rounded down to weeks
+        uint start = block.timestamp;
+        uint unlock_time = (start + _lock_duration) / WEEK * WEEK; // Locktime is rounded down to weeks
 
         require(_value > 0, "ERROR: deposit value need >0"); // dev: need non-zero value
         require(unlock_time > block.timestamp, 'Can only lock until time in the future');
@@ -776,7 +779,7 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
         uint _tokenId = tokenId;
         _mint(_to, _tokenId);
 
-        _deposit_for(_tokenId, _value, unlock_time, _lock_duration, locked[_tokenId], DepositType.CREATE_LOCK_TYPE);
+        _deposit_for(_tokenId, _value, unlock_time, start, locked[_tokenId], DepositType.CREATE_LOCK_TYPE);
         return _tokenId;
     }
 
@@ -806,7 +809,7 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
         require(_locked.amount > 0, 'No existing lock found');
         require(_locked.end > block.timestamp, 'Cannot add to expired lock. Withdraw');
 
-        _deposit_for(_tokenId, _value, 0, _locked.lock_duration, _locked, DepositType.INCREASE_LOCK_AMOUNT);
+        _deposit_for(_tokenId, _value, 0, _locked.start, _locked, DepositType.INCREASE_LOCK_AMOUNT);
     }
 
     /// @notice Extend the unlock time for `_tokenId`
@@ -815,6 +818,7 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
         assert(_isApprovedOrOwner(msg.sender, _tokenId));
 
         LockedBalance memory _locked = locked[_tokenId];
+        uint start = _locked.start;
         uint unlock_time = (block.timestamp + _lock_duration) / WEEK * WEEK; // Locktime is rounded down to weeks
 
         require(_locked.end > block.timestamp, 'Lock expired');
@@ -822,7 +826,7 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
         require(unlock_time > _locked.end, 'Can only increase lock duration');
         require(unlock_time <= block.timestamp + MAXTIME, 'Voting lock can be 2 years max');
 
-        _deposit_for(_tokenId, 0, unlock_time, _lock_duration, _locked, DepositType.INCREASE_UNLOCK_TIME);
+        _deposit_for(_tokenId, 0, unlock_time, start, _locked, DepositType.INCREASE_UNLOCK_TIME);
     }
     
     /// @notice Set penalty fee for early withdraw 
@@ -831,7 +835,7 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
         require(_newPenaltyfee <= 10000, "penalty Fee too high");
         penaltyfee = _newPenaltyfee;
 
-        emit SetEarlyWithdrawConfig(_newPenaltyfee);
+        emit SetPenaltyFeeForEarlyWithdraw(_newPenaltyfee);
     }
 
 
@@ -1096,11 +1100,12 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
         LockedBalance memory _locked1 = locked[_to];
         uint value0 = uint(int256(_locked0.amount));
         uint end = _locked0.end >= _locked1.end ? _locked0.end : _locked1.end;
+        uint start = _locked0.start <= _locked1.end ? _locked0.start : _locked1.start;
 
         locked[_from] = LockedBalance(0, 0, 0);
         _checkpoint(_from, _locked0, LockedBalance(0, 0, 0));
         _burn(_from);
-        _deposit_for(_to, value0, end, _locked1, DepositType.MERGE_TYPE);
+        _deposit_for(_to, value0, end, start, _locked1, DepositType.MERGE_TYPE);
     }
 
 
@@ -1148,7 +1153,7 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
             _tokenId = tokenId;
             _mint(_to, _tokenId);
             _value = value * amounts[i] / totalWeight;
-            _deposit_for(_tokenId, _value, unlock_time, locked[_tokenId], DepositType.SPLIT_TYPE);
+            _deposit_for(_tokenId, _value,  unlock_time, _locked.start, locked[_tokenId], DepositType.SPLIT_TYPE);
         }     
 
     }
