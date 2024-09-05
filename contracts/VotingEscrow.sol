@@ -851,13 +851,13 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
         (old_locked.amount, old_locked.start, old_locked.end) = (_locked.amount, _locked.start, _locked.end);
         uint value = uint(int256(_locked.amount));
         // ceil the week by adding 1 week first
-        uint256 remaining_weeks = (_locked.end + WEEK - block.timestamp) / WEEK;
-        uint256 total_weeks = (_locked.end + WEEK - _locked.start) / WEEK;
-        uint256 unlock_amount = value * (total_weeks - remaining_weeks) / total_weeks;
+        uint remaining_weeks = (_locked.end + WEEK - block.timestamp) / WEEK;
+        uint total_weeks = (_locked.end + WEEK - _locked.start) / WEEK;
+        uint unlock_amount = value * (total_weeks - remaining_weeks) / total_weeks;
 
-        uint256 penalty_fee = unlock_amount * penaltyFee / 10000;
+        uint penalty_fee = unlock_amount * penaltyFee / 10000;
 
-        _locked.amount = _locked.amount - unlock_amount;
+        _locked.amount = int128(int256(value - unlock_amount));
 
         assert(IERC20(token).transfer(msg.sender, unlock_amount-penalty_fee));
         assert(IERC20(token).transfer(team, penalty_fee));
