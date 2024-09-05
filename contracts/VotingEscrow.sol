@@ -3,7 +3,6 @@ pragma solidity 0.8.13;
 
 import {IERC721, IERC721Metadata} from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import {IVotes} from "@openzeppelin/contracts/governance/utils/IVotes.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import {IERC20} from "./interfaces/IERC20.sol";
 import {IVeArtProxy} from "./interfaces/IVeArtProxy.sol";
@@ -16,7 +15,7 @@ import {IVotingEscrow} from "./interfaces/IVotingEscrow.sol";
 /// @author Modified from Curve (https://github.com/curvefi/curve-dao-contracts/blob/master/contracts/VotingEscrow.vy)
 /// @author Modified from Nouns DAO (https://github.com/withtally/my-nft-dao-project/blob/main/contracts/ERC721Checkpointable.sol)
 /// @dev Vote weight decays linearly over time. Lock time cannot be more than `MAXTIME` (2 years).
-contract VotingEscrow is IERC721, IERC721Metadata, IVotes, Ownable {
+contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
     enum DepositType {
         DEPOSIT_FOR_TYPE,
         CREATE_LOCK_TYPE,
@@ -61,6 +60,7 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes, Ownable {
         uint ts
     );
     event Withdraw(address indexed provider, uint tokenId, uint value, uint ts);
+    event EarlyWithdraw(address indexed provider, uint tokenId, uint value, uint ts);
     event Supply(uint prevSupply, uint supply);
     event SetPenaltyFeeForEarlyWithdraw(uint newPenaltyFee);
 
@@ -72,7 +72,7 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes, Ownable {
     address public voter;
     address public team;
     address public artProxy;
-    uint public penaltyfee; 
+    uint public penaltyFee; 
 
     mapping(uint => Point) public point_history; // epoch -> unsigned point
 
@@ -830,10 +830,11 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes, Ownable {
     }
     
     /// @notice Set penalty fee for early withdraw 
-    function setPenaltyFeeForEarlyWithdraw(uint _newPenaltyfee) external onlyOwner {
+    function setPenaltyFeeForEarlyWithdraw(uint _newPenaltyfee) external nonreentrant {
+        require(msg.sender == team, "ERROR: sender address not team address");
         // Maximum penaltyFee = 10000 (100%)
         require(_newPenaltyfee <= 10000, "penalty Fee too high");
-        penaltyfee = _newPenaltyfee;
+        penaltyFee = _newPenaltyfee;
 
         emit SetPenaltyFeeForEarlyWithdraw(_newPenaltyfee);
     }
@@ -846,6 +847,25 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes, Ownable {
         require(attachments[_tokenId] == 0 && !voted[_tokenId], "attached");
 
         LockedBalance memory _locked = locked[_tokenId];
+        uint value = uint(int256(_locked.amount));
+        // ceil the week by adding 1 week first
+        uint256 remaining_weeks = (_locked.end + WEEK - block.timestamp) / WEEK;
+        uint256 total_weeks = (_locked.end + WEEK - _locked.start) / WEEK;
+        uint256 unlock_amount = value * (total_weeks - remaining_weeks) / total_weeks;
+
+        uint256 penalty_fee = unlock_amount * penaltyFee / 10000;
+
+        _locked.amount = _locked.amount - unlock_amount;
+
+        assert(IERC20(token).transfer(msg.sender, unlock_amount-penalty_fee));
+        assert(IERC20(token).transfer(team, penalty_fee));
+
+        uint supply_before = supply;
+        supply = supply_before - unlock_amount;
+
+
+        emit EarlyWithdraw(msg.sender, _tokenId, unlock_amount, block.timestamp);
+        emit Supply(supply_before, supply_before - value);
     }
 
     /// @notice Withdraw all tokens for `_tokenId`
