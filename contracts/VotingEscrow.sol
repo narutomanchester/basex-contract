@@ -27,6 +27,7 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
 
     struct LockedBalance {
         int128 amount;
+        uint lock_duration;
         uint end;
     }
 
@@ -60,6 +61,7 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
     );
     event Withdraw(address indexed provider, uint tokenId, uint value, uint ts);
     event Supply(uint prevSupply, uint supply);
+    event setPenaltyFeeForEarlyWithdraw(uint newPenaltyFee);
 
     /*//////////////////////////////////////////////////////////////
                                CONSTRUCTOR
@@ -703,6 +705,7 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
         uint _tokenId,
         uint _value,
         uint unlock_time,
+        uint lock_duration,
         LockedBalance memory locked_balance,
         DepositType deposit_type
     ) internal {
@@ -716,6 +719,7 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
         _locked.amount += int128(int256(_value));
         if (unlock_time != 0) {
             _locked.end = unlock_time;
+            _locked.lock_duration = lock_duration;
         }
         locked[_tokenId] = _locked;
 
@@ -740,7 +744,7 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
 
     /// @notice Record global data to checkpoint
     function checkpoint() external {
-        _checkpoint(0, LockedBalance(0, 0), LockedBalance(0, 0));
+        _checkpoint(0, LockedBalance(0, 0, 0), LockedBalance(0, 0, 0));
     }
 
     /// @notice Deposit `_value` tokens for `_tokenId` and add to the lock
@@ -754,7 +758,7 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
         require(_value > 0, "ERROR: deposit value need >0"); // dev: need non-zero value
         require(_locked.amount > 0, 'No existing lock found');
         require(_locked.end > block.timestamp, 'Cannot add to expired lock. Withdraw');
-        _deposit_for(_tokenId, _value, 0, _locked, DepositType.DEPOSIT_FOR_TYPE);
+        _deposit_for(_tokenId, _value, 0, _locked.lock_duration, _locked, DepositType.DEPOSIT_FOR_TYPE);
     }
 
     /// @notice Deposit `_value` tokens for `_to` and lock for `_lock_duration`
@@ -772,7 +776,7 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
         uint _tokenId = tokenId;
         _mint(_to, _tokenId);
 
-        _deposit_for(_tokenId, _value, unlock_time, locked[_tokenId], DepositType.CREATE_LOCK_TYPE);
+        _deposit_for(_tokenId, _value, unlock_time, _lock_duration, locked[_tokenId], DepositType.CREATE_LOCK_TYPE);
         return _tokenId;
     }
 
@@ -802,7 +806,7 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
         require(_locked.amount > 0, 'No existing lock found');
         require(_locked.end > block.timestamp, 'Cannot add to expired lock. Withdraw');
 
-        _deposit_for(_tokenId, _value, 0, _locked, DepositType.INCREASE_LOCK_AMOUNT);
+        _deposit_for(_tokenId, _value, 0, _locked.lock_duration, _locked, DepositType.INCREASE_LOCK_AMOUNT);
     }
 
     /// @notice Extend the unlock time for `_tokenId`
@@ -818,14 +822,26 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
         require(unlock_time > _locked.end, 'Can only increase lock duration');
         require(unlock_time <= block.timestamp + MAXTIME, 'Voting lock can be 2 years max');
 
-        _deposit_for(_tokenId, 0, unlock_time, _locked, DepositType.INCREASE_UNLOCK_TIME);
+        _deposit_for(_tokenId, 0, unlock_time, _lock_duration, _locked, DepositType.INCREASE_UNLOCK_TIME);
+    }
+    
+    /// @notice Set penalty fee for early withdraw 
+    function setPenaltyFeeForEarlyWithdraw(uint _newPenaltyfee) external onlyOwner {
+        // Maximum penaltyFee = 10000 (100%)
+        require(_newPenaltyfee <= 10000, "penalty Fee too high");
+        penaltyfee = _newPenaltyfee;
+
+        emit SetEarlyWithdrawConfig(_newPenaltyfee);
     }
 
 
     /// @notice early withdraw for `_tokenId`
     /// @dev user need to pay some penalty for early unlock
     function early_withdraw(uint _tokenId) external nonreentrant {
+        assert(_isApprovedOrOwner(msg.sender, _tokenId));
+        require(attachments[_tokenId] == 0 && !voted[_tokenId], "attached");
 
+        LockedBalance memory _locked = locked[_tokenId];
     }
 
     /// @notice Withdraw all tokens for `_tokenId`
@@ -838,14 +854,14 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
         require(block.timestamp >= _locked.end, "The lock didn't expire");
         uint value = uint(int256(_locked.amount));
 
-        locked[_tokenId] = LockedBalance(0,0);
+        locked[_tokenId] = LockedBalance(0,0,0);
         uint supply_before = supply;
         supply = supply_before - value;
 
         // old_locked can have either expired <= timestamp or zero end
         // _locked has only 0 end
         // Both can have >= 0 amount
-        _checkpoint(_tokenId, _locked, LockedBalance(0,0));
+        _checkpoint(_tokenId, _locked, LockedBalance(0,0,0));
 
         assert(IERC20(token).transfer(msg.sender, value));
 
@@ -1081,8 +1097,8 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
         uint value0 = uint(int256(_locked0.amount));
         uint end = _locked0.end >= _locked1.end ? _locked0.end : _locked1.end;
 
-        locked[_from] = LockedBalance(0, 0);
-        _checkpoint(_from, _locked0, LockedBalance(0, 0));
+        locked[_from] = LockedBalance(0, 0, 0);
+        _checkpoint(_from, _locked0, LockedBalance(0, 0, 0));
         _burn(_from);
         _deposit_for(_to, value0, end, _locked1, DepositType.MERGE_TYPE);
     }
@@ -1116,8 +1132,8 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
         }
 
         // remove old data
-        locked[_tokenId] = LockedBalance(0, 0);
-        _checkpoint(_tokenId, _locked, LockedBalance(0, 0));
+        locked[_tokenId] = LockedBalance(0, 0, 0);
+        _checkpoint(_tokenId, _locked, LockedBalance(0, 0, 0));
         _burn(_tokenId);
 
         // save end
