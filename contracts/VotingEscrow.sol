@@ -847,7 +847,8 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
         require(attachments[_tokenId] == 0 && !voted[_tokenId], "attached");
 
         LockedBalance memory _locked = locked[_tokenId];
-        LockedBalance old_locked = _locked;
+        LockedBalance memory old_locked;
+        (old_locked.amount, old_locked.start, old_locked.end) = (_locked.amount, _locked.start, _locked.end);
         uint value = uint(int256(_locked.amount));
         // ceil the week by adding 1 week first
         uint256 remaining_weeks = (_locked.end + WEEK - block.timestamp) / WEEK;
