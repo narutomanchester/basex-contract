@@ -847,6 +847,7 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
         require(attachments[_tokenId] == 0 && !voted[_tokenId], "attached");
 
         LockedBalance memory _locked = locked[_tokenId];
+        LockedBalance old_locked = _locked;
         uint value = uint(int256(_locked.amount));
         // ceil the week by adding 1 week first
         uint256 remaining_weeks = (_locked.end + WEEK - block.timestamp) / WEEK;
@@ -859,6 +860,8 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
 
         assert(IERC20(token).transfer(msg.sender, unlock_amount-penalty_fee));
         assert(IERC20(token).transfer(team, penalty_fee));
+
+        _checkpoint(_tokenId, old_locked, _locked);
 
         uint supply_before = supply;
         supply = supply_before - unlock_amount;
