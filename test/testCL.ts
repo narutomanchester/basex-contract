@@ -493,6 +493,13 @@ describe("FusionX - Voter Section", function () {
 
     await veFSX.create_lock(lockAmount, 2 * 7 * 86400); //create lock for 2 weeks
 
+    (async () => { 
+
+      await sleep(242);
+    })();
+
+    
+
     const veFSXCount = await veFSX.balanceOf(owner.address);
     expect(veFSXCount).to.above(0);
     console.log("veFSX Count:", veFSXCount);
@@ -502,6 +509,10 @@ describe("FusionX - Voter Section", function () {
     }
     nftIDs = await Promise.all(promises);
     console.log("veFSX NFT IDs:", nftIDs);
+  });
+
+  it("Should early withdraw veFSX to get FSX ", async function () {
+    await veFSX.early_withdraw(1);
   });
 
   it("Should vote", async function () {
