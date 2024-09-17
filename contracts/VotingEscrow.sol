@@ -716,7 +716,7 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
 
         supply = supply_before + _value;
         LockedBalance memory old_locked;
-        (old_locked.amount, old_locked.end) = (_locked.amount, _locked.end);
+        (old_locked.amount, old_locked.end, old_locked.start) = (_locked.amount, _locked.end, _locked.start);
         // Adding to existing lock, or if a lock is expired - creating a new one
         _locked.amount += int128(int256(_value));
         if (unlock_time != 0) {
@@ -769,6 +769,7 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
     /// @param _to Address to deposit
     function _create_lock(uint _value, uint _lock_duration, address _to) internal returns (uint) {
         uint start = block.timestamp;
+        require(_value < 0, "ERROR: deposit value need >0"); // dev: need non-zero value
         uint unlock_time = (start + _lock_duration) / WEEK * WEEK; // Locktime is rounded down to weeks
 
         require(_value > 0, "ERROR: deposit value need >0"); // dev: need non-zero value

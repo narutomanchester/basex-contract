@@ -361,8 +361,8 @@ describe("FusionX - Deployment Section", function () {
 
 describe("FusionX - Gauge Section", function () {
   beforeEach(async () => {
-    // await ethers.provider.send("evm_increaseTime", [5]);
-    // await ethers.provider.send("evm_mine");
+    await ethers.provider.send("evm_increaseTime", [5]);
+    await ethers.provider.send("evm_mine");
 
     const blockNumBefore = await ethers.provider.getBlockNumber();
     const blockBefore = await ethers.provider.getBlock(blockNumBefore);
@@ -512,7 +512,7 @@ describe("FusionX - Voter Section", function () {
   });
 
   it("Should early withdraw veFSX to get FSX ", async function () {
-    await veFSX.early_withdraw(1);
+    await veFSX.early_withdraw(2);
   });
 
   it("Should vote", async function () {

@@ -16,8 +16,9 @@ async function main() {
   // await verifyContract(BXT.address, []);
   // const FSXTOKEN = await ethers.deployContract("FusionX");
   // await FSXTOKEN.deployed();
+  // const FSX_ADDRESS = FSXTOKEN.address;
   // await verifyContract(FSX_ADDRESS, []);
-  const FSX_ADDRESS = '0xDA735D05A41562004f0425B8C37C6d160F62891c';
+  const FSX_ADDRESS = '0xe0c53a1a68934063a6AD32b47957CfE20D5c9A46';
   // const veArtProxy_ADDRESS = "0x83b1D50369D8C4dE4B78e60d705A66b1A94c96b7";
   // const veBXT_ADDRESS = "0xC34a168467641264F18Cf0Ea1D132AB4E4C95CEe";
   // const PermissionsRegistry_ADDRESS = "0x32C307651d3F50adeD6b59E00e5e0Fbba68F8C7C";
@@ -39,6 +40,10 @@ async function main() {
 
   // RewardsDistributor
   input = [veBXT.address];
+  console.log(
+    `veBXT Address: ${veBXT.address}`
+  );
+  
   const rewardsDistributor = await ethers.deployContract(
     "RewardsDistributor",
     input
